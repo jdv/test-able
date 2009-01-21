@@ -2,103 +2,37 @@ package Test::Unit::Moose::Object;
 
 use Moose::Role;
 use Test::Unit::Moose::Method;
-use Test::Unit::Moose::MethodArray;
 
 with qw( Test::Unit::Moose::Planner );
 
 =item method_types
 
+Default is startup, setup, test, teardown, and shutdown.
+
 =cut
 
 has 'method_types' => (
-    is => 'ro', isa => 'ArrayRef',
-    default => sub { [ qw( startup setup test teardown shutdown ) ] },
+    is => 'ro', isa => 'ArrayRef', lazy_build => 1,
 );
 
-=item startup_methods
+=item *_methods
+
+Accessors for the method types.
 
 =cut
 
-has 'startup_methods' => (
-    is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
+for ( @{ __PACKAGE__->_build_method_types } ) {
+    has "${_}_methods" => (
+        is => 'rw', isa => 'ArrayRef', lazy_build => 1,
+        trigger => sub {
+            my ( $self, $value, ) = @_;
 
-        tie( my @array, 'Test::Unit::Moose::MethodArray' );
-        push( @array, @{ $value }, );
-        $self->clear_plan;
+            $self->clear_plan;
 
-        return;
-    },
-);
-
-=item setup_methods
-
-=cut
-
-has 'setup_methods' => (
-    is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
-
-        tie( my @array, 'Test::Unit::Moose::MethodArray' );
-        push( @array, @{ $value }, );
-        $self->clear_plan;
-
-        return;
-    },
-);
-
-=item test_methods
-
-=cut
-
-has 'test_methods' => (
-    is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
-
-        tie( my @array, 'Test::Unit::Moose::MethodArray' );
-        push( @array, @{ $value }, );
-        $self->clear_plan;
-
-        return;
-    },
-);
-
-=item teardown_methods
-
-=cut
-
-has 'teardown_methods' => (
-    is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
-
-        tie( my @array, 'Test::Unit::Moose::MethodArray' );
-        push( @array, @{ $value }, );
-        $self->clear_plan;
-
-        return;
-    },
-);
-
-=item shutdown_methods
-
-=cut
-
-has 'shutdown_methods' => (
-    is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
-
-        tie( my @array, 'Test::Unit::Moose::MethodArray' );
-        push( @array, @{ $value }, );
-        $self->clear_plan;
-
-        return;
-    },
-);
+            return;
+        },
+    );
+}
 
 =item test_objects
 
@@ -146,14 +80,47 @@ has 'dry_run' => (
     is => 'rw', isa => 'Bool', default => 0,
 );
 
+sub _build_method_types {
+    my ( $self, ) = @_;
+
+    return [ qw( startup setup test teardown shutdown ) ];
+}
+
+sub _build_startup_methods {
+    my ( $self, ) = @_;
+
+    return $self->build_methods( 'startup' );
+}
+
+sub _build_setup_methods {
+    my ( $self, ) = @_;
+
+    return $self->build_methods( 'setup' );
+}
+
+sub _build_test_methods {
+    my ( $self, ) = @_;
+
+    return $self->build_methods( 'test' );
+}
+
+sub _build_teardown_methods {
+    my ( $self, ) = @_;
+
+    return $self->build_methods( 'teardown' );
+}
+
+sub _build_shutdown_methods {
+    my ( $self, ) = @_;
+
+    return $self->build_methods( 'shutdown' );
+}
+
 sub _build_test_objects {
     my ( $self, ) = @_;
 
-    if ( $self->current_test_object ) {
-        $self->current_test_object->meta->test_runner_object( $self, );
-        return [ $self->current_test_object, ];
-    }
-    else { return []; }
+    return $self->current_test_object
+      ? [ $self->current_test_object, ] : [];
 }
 
 =item run_tests
@@ -164,6 +131,7 @@ sub run_tests {
     my ( $self, ) = @_;
 
     $self->test_runner_object( $self, );
+    #TODO: should not be needed if obj list change detection works.
     for ( @{ $self->test_objects } ) {
         $_->meta->test_runner_object( $self, );
     }
@@ -174,9 +142,9 @@ sub run_tests {
     for ( @{ $self->test_objects } ) {
         $_->meta->current_test_object( $_ );
 
-        $_->meta->run_startup_methods;
-        $_->meta->run_test_methods;
-        $_->meta->run_shutdown_methods;
+        $_->meta->run_methods( 'startup'  );
+        $_->meta->run_methods( 'test'     );
+        $_->meta->run_methods( 'shutdown' );
 
         $_->meta->clear_current_test_object;
     }
@@ -184,100 +152,72 @@ sub run_tests {
     return;
 }
 
-=item run_test_methods
+=item run_methods
 
 =cut
 
-sub run_test_methods {
-    my ( $self, ) = @_;
+sub run_methods {
+    my ( $self, $type, ) = @_;
 
-    my $methods = $self->test_methods;
-    my $count   = @{ $methods };
+    my $accessor_name = $type . '_methods';
+    my $methods       = $self->$accessor_name;
+    my $count         = @{ $methods };
     my $i;
-    for ( @{ $methods } ) { 
-        $self->current_test_method( $_ );
-
-        $self->run_setup_methods;
-
-        $self->log(
-            $self->current_test_object . '->' . $_->name
-              . "(test/" . $_->plan . ")"
-              . '('. ++$i . "/$count)"
-        );
-
-        my $method_name = $_->name;
-        unless ( $self->dry_run ) {
-            $self->current_test_object->$method_name;
+    for ( @{ $methods } ) {
+        if ( $type eq 'test' ) {
+            $self->current_test_method( $_ );
+            $self->run_methods( 'setup' );
         }
 
-        $self->run_teardown_methods;
-
-        $self->clear_current_test_method;
-    }
-
-    return;
-}
-
-=item run_startup_methods
-
-=cut
-
-sub run_startup_methods {
-    my ( $self, ) = @_;
-
-    return $self->_run_auxiliary_methods( 'startup' );
-}
-
-=item run_shutdown_methods
-
-=cut
-
-sub run_shutdown_methods {
-    my ( $self, ) = @_;
-
-    return $self->_run_auxiliary_methods( 'shutdown' );
-}
-
-=item run_setup_methods
-
-=cut 
-sub run_setup_methods {
-    my ( $self, ) = @_;
-
-    return $self->_run_auxiliary_methods( 'setup' );
-}
-
-=item run_teardown_methods
-
-=cut
-
-sub run_teardown_methods {
-    my ( $self, ) = @_;
-
-    return $self->_run_auxiliary_methods( 'teardown' );
-}
-
-sub _run_auxiliary_methods {
-    my ( $self, $type, ) = @_;
-    my $accessor_name    = $type . '_methods';
-
-    die "current_test_object required to run $type method list"
-      unless defined $self->current_test_object;
-
-    my $methods = $self->$accessor_name;
-    my $count   = @{ $methods };
-    my $i;
-    for ( @{ $methods } ) { 
         my $method_name = $_->name;
         $self->log(
             $self->current_test_object . '->' . $method_name
               . "($type/" . $_->plan . ")"
               . '('. ++$i . "/$count)"
         );
-
         unless ( $self->dry_run ) {
             $self->current_test_object->$method_name;
         }
+
+        if ( $type eq 'test' ) {
+            $self->run_methods( 'teardown' );
+            $self->clear_current_test_method;
+        }
+    }
+
+    return;
+}
+
+=item build_methods
+
+=cut
+
+sub build_methods {
+    my ( $self, $type, ) = @_;
+
+    my @methods;
+    for ( $self->current_test_object->meta->get_all_methods ) {
+        if ( $_->can( 'type' ) ) {
+            my $method_type = $_->type;
+            push( @methods, $_ )
+              if defined $method_type && $method_type eq $type;
+        }
+    }
+
+    return [ sort { $a->name cmp $b->name } @methods ];
+}
+
+=item build_all_methods
+
+=cut
+
+sub build_all_methods {
+    my ( $self, ) = @_;
+
+    for ( @{ $self->method_types } ) {
+        my $accessor_name =          $_ . '_methods';
+        my $has_name      = 'has_' . $_ . '_methods';
+        $self->$accessor_name unless $self->$has_name;
     }
 
     return;
@@ -292,76 +232,11 @@ sub clear_all_methods {
 
     for ( @{ $self->method_types } ) {
         my $clear_name = 'clear_' . $_ . '_methods';
-        my $has_name   = 'has_' . $_ . '_methods';
+        my $has_name   = 'has_'   . $_ . '_methods';
         $self->$clear_name if $self->$has_name;
     }
 
     return;
-}
-
-=item build_all_methods
-
-=cut
-
-sub build_all_methods {
-    my ( $self, ) = @_;
-
-    for ( @{ $self->method_types } ) {
-        my $accessor_name = $_ . '_methods';
-        my $has_name      = 'has_' . $_ . '_methods';
-        $self->$accessor_name unless $self->$has_name;
-    }
-
-    return;
-}
-
-sub _build_startup_methods {
-    my ( $self, ) = @_;
-
-    return $self->_build_methods_of_type( 'startup' );
-}
-
-sub _build_setup_methods {
-    my ( $self, ) = @_;
-
-    return $self->_build_methods_of_type( 'setup' );
-}
-
-sub _build_test_methods {
-    my ( $self, ) = @_;
-
-    return $self->_build_methods_of_type( 'test' );
-}
-
-sub _build_teardown_methods {
-    my ( $self, ) = @_;
-
-    return $self->_build_methods_of_type( 'teardown' );
-}
-
-sub _build_shutdown_methods {
-    my ( $self, ) = @_;
-
-    return $self->_build_methods_of_type( 'shutdown' );
-}
-
-sub _build_methods_of_type {
-    my ( $self, $type, ) = @_;
-
-    die "current_test_object required to build $type method list"
-      unless defined $self->current_test_object;
-
-    my @methods;
-    tie( @methods, 'Test::Unit::Moose::MethodArray' );
-    for ( $self->current_test_object->meta->get_all_methods ) {
-        if ( $_->can( 'type' ) ) {
-            my $method_type = $_->type;
-            push( @methods, $_ )
-              if defined $method_type && $method_type eq $type;
-        }
-    }
-
-    return [ sort { $a->name cmp $b->name } @methods ];
 }
 
 =item log
@@ -389,12 +264,10 @@ sub _build_plan {
                     last METHOD_TYPE;
                 }
                 else {
-                if ( $accessor_name =~ /^setup|teardown/ ) {
-                        $plan += $_->plan * $test_method_count;
-                }
-                else {
-                        $plan += $_->plan;
-                }
+                    if ( $accessor_name =~ /^setup|teardown/ ) {
+                            $plan += $_->plan * $test_method_count;
+                    }
+                    else { $plan += $_->plan; }
                 }
         }
     }
@@ -421,6 +294,7 @@ before 'clear_plan' => sub {
 };
 #}
 
+#TODO:  dump this ASAP.
 # Hack Test::Builder cause it doesn't do deferred plans; yet.
 sub _build_master_plan {
     my ( $self, ) = @_;
@@ -464,6 +338,7 @@ sub _build_master_plan {
     return $plan;
 }
 
+#TODO:  dump this ASAP.
 # Hack Test::Builder cause it doesn't do deferred plans; yet.
 my $hacked_test_builder;
 sub _hack_test_builder {
@@ -484,7 +359,7 @@ sub _hack_test_builder {
     };
 }
 
-=head1 AUTHOR 
+=head1 AUTHOR
 
 Justin DeVuyst E<lt>justin@devuyst.comE<gt>
 

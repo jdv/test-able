@@ -1,5 +1,7 @@
-1.  Decide on name (Test::Moose::Class, Test::Antlered, Test::Moose::Classy,
-    Test::pUnit, Test::Mop, etc...).
+1.  Planning has to be fixed.
+1.1.  Skip and todo support.
+1.2.  All method types should default to plan of 0 to increase
+      chance of not having to go no_plan overall.
 
 2.  Add option to stop whatever is running and run teardown and shutdown
     methods on first SIGINT.  This would get us a graceful kill.
@@ -19,3 +21,6 @@
       (creates .t files in temp dir) and not as one huge run.
 
 5.  Get someone to do a Test::Class compat layer.
+
+6.  General cleanup
+6.1.  Resolve issues with Loop-Driven Cookbook entry.
