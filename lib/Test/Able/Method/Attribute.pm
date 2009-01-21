@@ -1,4 +1,4 @@
-package Test::Unit::Moose::Method::Attribute;
+package Test::Able::Method::Attribute;
 
 use Moose::Role;
 use Sub::Identify;

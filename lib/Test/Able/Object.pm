@@ -1,9 +1,9 @@
-package Test::Unit::Moose::Object;
+package Test::Able::Object;
 
 use Moose::Role;
-use Test::Unit::Moose::Method;
+use Test::Able::Method;
 
-with qw( Test::Unit::Moose::Planner );
+with qw( Test::Able::Planner );
 
 =item method_types
 

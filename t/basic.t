@@ -4,15 +4,15 @@ use strict;
 use Test::More tests => 49;
 use warnings;
 
-use_ok( 'Test::Unit::Moose' );
+use_ok( 'Test::Able' );
 
-my $t = Test::Unit::Moose->new;
+my $t = Test::Able->new;
 
-isa_ok( $t, 'Test::Unit::Moose' );
+isa_ok( $t, 'Test::Able' );
 isa_ok( $t->meta, 'Moose::Meta::Class' );
 isa_ok( $t->meta->builder, 'Test::Builder' );
 ok(
-    $t->meta->meta->does_role( 'Test::Unit::Moose::Object' ),
+    $t->meta->meta->does_role( 'Test::Able::Object' ),
     'meta->meta does Object role'
 );
 
@@ -62,9 +62,9 @@ for ( @{ $t->meta->method_types } ) {
     ok( $@, "$accessor_name dies after clear_all_methods" );
 }
 
-# build and run Test::Unit::Moose test object
+# build and run Test::Able test object
 {
-    my $t = Test::Unit::Moose->new;
+    my $t = Test::Able->new;
 
     my @method_exec = (
         'startup_methods1',
@@ -90,7 +90,7 @@ for ( @{ $t->meta->method_types } ) {
     );
 
     my $class = Moose::Meta::Class->create_anon_class;
-    $class->superclasses( 'Test::Unit::Moose', );
+    $class->superclasses( 'Test::Able', );
     my $i;
     for ( @{ $t->meta->method_types } ) {
         my $accessor_name = $_ . '_methods';

@@ -1,7 +1,7 @@
 package Bar;
 
 use Moose;
-BEGIN { extends( 'Test::Unit::Moose' ); }
+BEGIN { extends( 'Test::Able' ); }
 use Test::More;
 
 sub startup : Startup( 1 ) { ok( 1 ); }

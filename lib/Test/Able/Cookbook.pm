@@ -1,4 +1,4 @@
-package Test::Unit::Moose::Cookbook;
+package Test::Able::Cookbook;
 
 #TODO: turn all examples into tests
 
@@ -17,7 +17,7 @@ methods.
 =item Modifying The Inheritted Test Execution Plan.
 
 With Test::Class its impossible to inherit from a Test::Class based
-module without running its test methods.  With Test::Unit::Moose we
+module without running its test methods.  With Test::Able we
 can just alter the test method lists to our liking.  For example we
 could dump all the test methods from our superclasses like so:
 

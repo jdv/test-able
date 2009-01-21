@@ -8,8 +8,8 @@ license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
-module_name: Test::Unit::Moose
-name: Test-Unit-Moose
+module_name: Test::Able
+name: Test-Able
 no_index:
   directory:
     - inc

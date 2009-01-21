@@ -1,4 +1,4 @@
-package Test::Unit::Moose::Planner;
+package Test::Able::Planner;
 
 use Moose::Role;
 use Moose::Util::TypeConstraints;

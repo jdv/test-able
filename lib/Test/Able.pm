@@ -1,15 +1,15 @@
-package Test::Unit::Moose;
+package Test::Able;
 
 use 5.008;
 use Moose;
 use Moose::Util::MetaRole;
-use Test::Unit::Moose::Object;
+use Test::Able::Object;
 
-with( 'Test::Unit::Moose::Method::Attribute' );
+with( 'Test::Able::Method::Attribute' );
 
 =head1 NAME
 
-Test::Unit::Moose
+Test::Able
 
 =head1 VERSION
 
@@ -24,7 +24,7 @@ our $VERSION = '0.01';
  package MyTest;
 
  use Moose;
- BEGIN { extends qw( Test::Unit::Moose ); }
+ BEGIN { extends qw( Test::Able ); }
  use Test::More;
  
  sub foo: Test( 1 ) { ok( 1 ); }
@@ -50,18 +50,18 @@ This module was created for a couple of reasons:
  2.  To leverage existing Moose expertise for testing.
  3.  To bring Moose to the Perl testing game.
 
-The core code and documentation are in L<Test::Unit::Moose::Object>.
+The core code and documentation are in L<Test::Able::Object>.
 
 =head1 METHODS 
 
 =cut
 
 sub import {
-    for ( __PACKAGE__, Test::Unit::Moose->meta->subclasses ) {
+    for ( __PACKAGE__, Test::Able->meta->subclasses ) {
         Moose::Util::MetaRole::apply_metaclass_roles(
             for_class              => $_,
-            metaclass_roles        => [ 'Test::Unit::Moose::Object', ],
-            method_metaclass_roles => [ 'Test::Unit::Moose::Method', ],
+            metaclass_roles        => [ 'Test::Able::Object', ],
+            method_metaclass_roles => [ 'Test::Able::Method', ],
         );
     }
 

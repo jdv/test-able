@@ -4,7 +4,7 @@ use lib 't/lib';
 
 use Bar;
 use strict;
-use Test::Unit::Moose;
+use Test::Able;
 use Test::More 'no_plan';
 use warnings;
 

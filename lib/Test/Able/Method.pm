@@ -1,12 +1,12 @@
-package Test::Unit::Moose::Method;
+package Test::Able::Method;
 
 use Moose::Role;
 
-with qw( Test::Unit::Moose::Planner );
+with qw( Test::Able::Planner );
 
 =item type
 
-Type of test method.  See Test::Unit::Moose::Object::method_types() for the
+Type of test method.  See Test::Able::Object::method_types() for the
 list.
 
 =cut
@@ -145,7 +145,7 @@ Return the subroutine attribute if one exists.
 sub fetch_sub_attribute {
     my ( $self, ) = @_;
 
-    my $attrs = Test::Unit::Moose::Method::Attribute->__sub_attributes;
+    my $attrs = Test::Able::Method::Attribute->__sub_attributes;
     my $attrs_pkg = $attrs->{ $self->package_name };
     my ( $attr ) = grep { $_->[ 0 ] eq $self->name } @{ $attrs_pkg };
 
