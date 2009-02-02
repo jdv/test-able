@@ -1,3 +1,4 @@
+Changes
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
@@ -9,6 +10,7 @@ inc/Module/Install/WriteAll.pm
 lib/Test/Able.pm
 lib/Test/Able/Cookbook.pm
 lib/Test/Able/Method.pm
+lib/Test/Able/Method/Array.pm
 lib/Test/Able/Method/Attribute.pm
 lib/Test/Able/Object.pm
 lib/Test/Able/Planner.pm
