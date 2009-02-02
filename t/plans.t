@@ -3,6 +3,7 @@
 use lib 't/lib';
 
 use Bar;
+use Baz;
 use strict;
 use Test::Able;
 use Test::More 'no_plan';
@@ -29,26 +30,25 @@ my @methods_no_plan = qw(
     my $t = Bar->new;
     is(
         $t->meta->get_method( 'startup_bar2' )->plan, 0,
-        'aux methods default to 0'
+        'non-test method default to 0'
     );
     is(
-        $t->meta->get_method( 'test_bar2' )->plan, 'no_plan',
-        'test type methods default to no_plan'
+        $t->meta->get_method( 'test_bar2' )->plan, 0,
+        'test method default to 0'
     );
-    print STDERR $t->meta->get_method( 'test_bar2' )->plan;
     Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # Object has no_plan if any method has no_plan.
-if(10){
-    my $t = Bar->new;
+{
+    my $t = Baz->new;
     $t->meta->test_objects( [ $t, ] );
     ok( $t->meta->plan eq 'no_plan', 'obj no_plan if any meth no_plan' );
     Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # Object has plan up front if all methods do.
-if(10){
+{
     my $t = Bar->new;
     $t->meta->test_objects( [ $t, ] );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
@@ -59,32 +59,29 @@ if(10){
 # Object can have deferred plan
 # which implies that object plan changes
 # on any method plan change.
-if(10){
-    my $t = Bar->new;
-    ok( $t->meta->plan eq 'no_plan', 'obj has no_plan before' );
+{
+    my $t = Baz->new;
+    cmp_ok( $t->meta->plan, 'eq', 'no_plan', 'obj has no_plan before' );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
-    ok( $t->meta->plan == 114, 'obj has plan after' );
+    is( $t->meta->plan, 15, 'obj has plan after' );
     Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # object plan changes when any of the method lists change.
-if(10){
+{
     my $t = Bar->new;
+    $t->meta->last_runner_plan( 8 );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
     ok( $t->meta->plan == 114, 'obj has plan' );
     $t->meta->setup_methods( [] );
     ok( $t->meta->plan == 58, 'obj plan changes after method list change' );
     $t->run_tests;
-    # TODO: this is lame; find a real way to do this.
-    $t->meta->last_master_plan( $t->meta->last_master_plan - 8 );
-    $t->meta->clear_plan;
-    $t->meta->master_plan;
     Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 sub set_plan_on_no_plan_methods {
     my ( $t, @methods_no_plan, ) = @_;
-    
+
     for ( @{ $t->meta->method_types } ) {
         my $accessor = $_ . '_methods';
         for my $method ( @{ $t->meta->$accessor } ) {

@@ -1,40 +1,62 @@
 package Test::Able::Cookbook;
 
-#TODO: turn all examples into tests
+#TODO: Turn all recipes into tests.
 
 =head1 Recipes
 
+=head2 Basics
+
 =over
 
-=item Dumping Test Execution Plan
+=item Dumping execution plan
 
  $t->meta->dry_run( 1 );
  $t->meta->run_tests;
 
-This does everything but call the test (startup/setup/test/teardown/shutdown)
-methods.
+Does everything but call the test (startup/setup/test/teardown/shutdown)
+methods.  And part of "everything" is logging the execution plan with
+$t->meta->log.
 
-=item Modifying The Inheritted Test Execution Plan.
+=item Define and Run in same file
 
-With Test::Class its impossible to inherit from a Test::Class based
-module without running its test methods.  With Test::Able we
-can just alter the test method lists to our liking.  For example we
-could dump all the test methods from our superclasses like so:
+package MyTests;
+
+use Moose;
+BEGIN { extend 'Test::Able'; }
+
+sub test {}
+
+...
+
+MyTests->import;
+MyTests->run_tests;
+
+Normally a test class will be defined in one file and run in another.  But
+sometimes its nice to do it all in one place.  The only non-obvious part is
+that Test::Able's import method must be run.
+
+=back
+
+=head2 Altering Method Lists
+
+Its not recommended to do any of this while a test run is in progress.
+The BUILD method in the test class could work.
+
+=over
+
+=item Remove superclass methods
 
  my $t_pkg = ref $t;
  for ( @{ $t->meta->method_types } ) {
      my $accessor = $_ . '_methods';
      $t->meta->$accessor( [ grep {
          $_->package_name ne $t_pkg;
-     } @{ $t->meta->$accessor } ]);
+     } @{ $t->meta->$accessor } ] );
  }
 
-=item explicitly building execution plan
+Unlike Test::Class its very easy to shed the methods from superclasses.
 
-Let's say we decide we want to manually setup our test method lists.
-
- my $t = BLA->new;
- $t->clear_all_methods;
+=item Explicit set
 
  my @methods = $t->meta->get_all_methods;
  $t->meta->startup_methods(  [ @methods[ 0..2 ]   ] );
@@ -43,61 +65,96 @@ Let's say we decide we want to manually setup our test method lists.
  $t->meta->teardown_methods( [ $methods[ 12 ]     ] );
  $t->meta->shutdown_methods( [ @methods[ 22..23 ] ] );
 
-=item explicit setup & teardown for "Loop-Driven testing"
+=item Ordering
 
-Maybe you want to run the same test over a dataset without
-writing seperate test methods.  Something like this should
-work fine.
+ use List::Util qw( shuffle );
+ for ( 1 .. 10 ) {
+     for ( @{ $t->meta->method_types } ) {
+         my $accessor = $_ . '_methods';
+         $t->meta->$accessor( [ shuffle @{ $t->meta->$accessor } ] );
+     }
+    $t->run_tests;
+ }
 
- sub test_on_x_and_y_and_z {
-    my ( $self, ) = @_;
+Simple xUnit purity test.
 
-    @x = qw( 1 2 3 );
-    @y = qw( a b c );
-    @z = qw( foo bar baz );
+=item Filtering
 
-    for my $x ( @x ) {
-        for my $y ( @y ) {
-            for my $z ( @z ) {
-                $self->meta->run_setup_methods;
-                $self->some_test_method( $x, $y, $z, );
-                $self->meta->run_teardown_methods;
-            }
-        }
-    }
+ $t->meta->test_methods(
+     [ grep { $_->name =~ /bla/; } @{ $t->meta->test_methods } ]
+ );
+
+=back
+
+=head2 Test Planning
+
+This functionality is not working well, yet.  This is partly because
+Test::Builder does not yet support deferred planning.  For now, to emulate
+deferred planning, the plan should be set to no_plan up front.  Test::Able
+will then persuade Test::Builder to print the plan at the end.
+
+=over
+
+=item Setting method plan during test run
+
+ sub test_method {
+     ...
+     $self->current_test_method->plan( $new_plan );
+     ...
+ }
+
+This will force the whole plan to be recalculated.
+
+=back
+
+=head2 Advanced
+
+=over
+
+=item Explicit setup & teardown for "Loop-Driven testing"
+
+ sub BUILD {
+     my ( $self, ) = @_;
+
+    my $m = $t->meta->test_methods->{ 'test_on_x_and_y_and_z' };
+    $m->do_setup( 0 );
+    $m->do_teardown( 0 );
 
     return;
  }
 
-=item method order change
+ sub test_on_x_and_y_and_z {
+     my ( $self, ) = @_;
 
-Let's say you wanted to see if your test object passes the ultimate
-xUnit purity test:  random method call order.  No problem!  We'll
-run the test object through its paces 10 times and re-order the
-all the test methods on each run like so:
+     @x = qw( 1 2 3 );
+     @y = qw( a b c );
+     @z = qw( foo bar baz );
 
- use List::Util qw( shuffle );
+     my $plan = @x * @y * @x;
+     $plan += @{ $self->meta->setup_methods } * $plan
+       + @{ $self->meta->teardown_methods } * $plan;
+     $self->current_test_method->plan( $plan );
 
- for ( 1 .. 10 ) {
-    for ( @{ $t->meta->method_types } ) {
-        my $accessor = $_ . '_methods';
-        $t->meta->$accessor( [ shuffle @{ $t->meta->$accessor } ] );
-    }
-    $t->run_tests;
+     for my $x ( @x ) {
+         for my $y ( @y ) {
+             for my $z ( @z ) {
+                 $self->meta->run_methods( 'setup' );
+                 $self->{ 'args' } = { x => $x, y=> $y, z => $z, };
+                 $self->some_test_method;
+                 $self->meta->run_methods( 'teardown' );
+             }
+         }
+     }
+
+     return;
  }
 
-=item test method filtering
-
-    #by name
-    $t->meta->test_methods(
-        [ grep { $_->name =~ /bla/; } @{ $t->meta->test_methods } ]
-    );
-
-    # by source package
-    my $t_pkg = ref $t;
-    $t->meta->test_methods( [ grep {
-        $_->package_name !~ /SomePackage/;
-    } @{ $t->meta->test_methods } ]);
+Since we're running the setup and teardown method lists explicitly in the loop
+it would be nice to have the option of not running them implicitly (the normal
+behavior - see L<Test::Able::Object/run_methods> ).  Setting do_setup the
+do_teardown above to false is an easy way to accomplish just that.  Notice, as
+illustrated in this recipe, that the method lists can be accessed as a
+HashRef.
 
 =back
 

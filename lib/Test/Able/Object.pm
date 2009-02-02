@@ -1,9 +1,19 @@
 package Test::Able::Object;
 
 use Moose::Role;
+use Moose::Util::TypeConstraints;
 use Test::Able::Method;
+use Test::Able::Method::Array;
 
 with qw( Test::Able::Planner );
+
+=head1 NAME
+
+Test::Able::Object
+
+=head1 ATTRIBUTES
+
+=over
 
 =item method_types
 
@@ -23,7 +33,7 @@ Accessors for the method types.
 
 for ( @{ __PACKAGE__->_build_method_types } ) {
     has "${_}_methods" => (
-        is => 'rw', isa => 'ArrayRef', lazy_build => 1,
+        is => 'rw', isa => 'MethodArray', lazy_build => 1, coerce => 1,
         trigger => sub {
             my ( $self, $value, ) = @_;
 
@@ -34,18 +44,20 @@ for ( @{ __PACKAGE__->_build_method_types } ) {
     );
 }
 
+subtype 'MethodArray'
+  => as 'Object'
+  => where { $_->isa( 'Test::Able::Method::Array' ); };
+
+coerce 'MethodArray'
+  => from 'ArrayRef'
+  => via { bless( $_, 'Test::Able::Method::Array' ); };
+
 =item test_objects
 
 =cut
 
 has 'test_objects' => (
     is => 'rw', isa => 'ArrayRef', lazy_build => 1,
-    trigger => sub {
-        my ( $self, $value, ) = @_;
-        for( @{ $value } ) {
-            $_->meta->test_runner_object( $self, );
-        }
-    },
 );
 
 =item current_test_object
@@ -64,6 +76,14 @@ has 'current_test_method' => (
     is => 'rw', isa => 'Object', clearer => 'clear_current_test_method',
 );
 
+=item current_method
+
+=cut
+
+has 'current_method' => (
+    is => 'rw', isa => 'Object', clearer => 'clear_current_method',
+);
+
 =item test_runner_object
 
 =cut
@@ -73,6 +93,8 @@ has 'test_runner_object' => (
 );
 
 =item dry_run
+
+=back
 
 =cut
 
@@ -123,6 +145,10 @@ sub _build_test_objects {
       ? [ $self->current_test_object, ] : [];
 }
 
+=head1 METHODS
+
+=over
+
 =item run_tests
 
 =cut
@@ -131,14 +157,15 @@ sub run_tests {
     my ( $self, ) = @_;
 
     $self->test_runner_object( $self, );
-    #TODO: should not be needed if obj list change detection works.
     for ( @{ $self->test_objects } ) {
         $_->meta->test_runner_object( $self, );
     }
 
-    # Initiate plan management.
-    $self->master_plan;
+    # Initial plan calc.
+    $self->runner_plan;
 
+    $self->log( "$self->run_tests() called but there are no test objects" )
+      unless @{ $self->test_objects };
     for ( @{ $self->test_objects } ) {
         $_->meta->current_test_object( $_ );
 
@@ -148,6 +175,9 @@ sub run_tests {
 
         $_->meta->clear_current_test_object;
     }
+
+    # No more plan updates.
+    #$self->clear_last_runner_plan;
 
     return;
 }
@@ -164,9 +194,10 @@ sub run_methods {
     my $count         = @{ $methods };
     my $i;
     for ( @{ $methods } ) {
+        $self->current_method( $_ );
         if ( $type eq 'test' ) {
             $self->current_test_method( $_ );
-            $self->run_methods( 'setup' );
+            $self->run_methods( 'setup' ) if $_->do_setup;
         }
 
         my $method_name = $_->name;
@@ -180,9 +211,10 @@ sub run_methods {
         }
 
         if ( $type eq 'test' ) {
-            $self->run_methods( 'teardown' );
+            $self->run_methods( 'teardown' ) if $_->do_teardown;
             $self->clear_current_test_method;
         }
+        $self->clear_current_method;
     }
 
     return;
@@ -204,7 +236,10 @@ sub build_methods {
         }
     }
 
-    return [ sort { $a->name cmp $b->name } @methods ];
+    return bless(
+        [ sort { $a->name cmp $b->name } @methods ],
+        'Test::Able::Method::Array'
+    );
 }
 
 =item build_all_methods
@@ -278,7 +313,9 @@ sub _build_plan {
 
 =item clear_plan
 
-Special purpose plan clearer that dumps plan and master_plan.
+Special purpose plan clearer that dumps plan and runner_plan.
+
+=back
 
 =cut
 
@@ -288,19 +325,19 @@ before 'clear_plan' => sub {
     my ( $self, ) = @_;
 
     delete $self->{ 'plan' };
-    delete $self->{ 'master_plan' };
+    delete $self->{ 'runner_plan' };
 
     return;
 };
 #}
 
-#TODO:  dump this ASAP.
-# Hack Test::Builder cause it doesn't do deferred plans; yet.
-sub _build_master_plan {
+# Hack Test::Builder because it doesn't do plan alterations.
+sub _build_runner_plan {
     my ( $self, ) = @_;
 
     $self->_hack_test_builder( $self->builder );
 
+    # Compute current plan.
     my $plan;
     for ( @{ $self->test_objects } ) {
         $_->meta->current_test_object( $_ );
@@ -316,25 +353,24 @@ sub _build_master_plan {
     }
     $plan ||= 'no_plan';
 
+    # Update Test::Builder.
     if ( $self->builder->{No_Plan} || $self->builder->{was_No_Plan} ) {
-        if ( $self->has_last_master_plan && $self->last_master_plan ne $plan ) {
-            my $last = $self->last_master_plan;
-            my $plan_diff
-              = ( $plan eq 'no_plan' ? 0 : $plan )
-              - ( $last eq 'no_plan' ? 0 : $last );
-            $self->builder->{No_Plan}     = 0;
-            $self->builder->{was_No_Plan} = 1;
-            $self->builder->{Expected_Tests} += $plan_diff;
-        }
-        else {
-            if ( $plan =~ /^\d+$/ ) {
-                $self->builder->{Expected_Tests} = $plan;
+        if ( $plan =~ /^\d+$/ ) {
+            if ( $self->has_last_runner_plan ) {
+                my $last = $self->last_runner_plan;
+                my $plan_diff = $plan + ( $last eq 'no_plan' ? 0 : $last );
+                $self->builder->{No_Plan}     = 0;
+                $self->builder->{was_No_Plan} = 1;
+                $self->builder->{Expected_Tests} += $plan_diff;
+                $self->last_runner_plan( $plan );
             }
-            else { $self->builder->{No_Plan} = 1; }
+            else {
+                $self->builder->{Expected_Tests} += $plan;
+            }
         }
+        else { $self->builder->{No_Plan} = 1; }
     }
 
-    $self->last_master_plan( $plan );
     return $plan;
 }
 
@@ -346,29 +382,48 @@ sub _hack_test_builder {
 
     return if $hacked_test_builder;
     $hacked_test_builder++;
-
     no warnings 'redefine';
     my $original_sub = \&Test::Builder::_ending;
     *Test::Builder::_ending = sub {
-        my $self_builder = shift;
-        if ( $self->master_plan =~ /\d+/ ) {
-            $self_builder->expected_tests( $self->builder->{Expected_Tests} );
-            $self_builder->no_header( 1 );
+        my $builder = shift;
+
+        if ( $builder->{was_No_Plan} && $self->runner_plan =~ /\d+/ ) {
+            $builder->expected_tests( $self->builder->{Expected_Tests} );
+            $builder->no_header( 1 );
         }
-        return $self_builder->$original_sub( @_, );
+
+        return $builder->$original_sub( @_, );
     };
 }
 
+=head1 SEE ALSO
+
+=over
+
+=item support
+
+ #moose on irc.perl.org
+
+=item code
+
+ http://github.com/jdv/test-able/tree/master
+
+=item L<Test::Class>
+
+=item L<Test::Builder>
+
+=back
+
 =head1 AUTHOR
 
-Justin DeVuyst E<lt>justin@devuyst.comE<gt>
+Justin DeVuyst, C<justin@devuyst.com>
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2008 by Justin DeVuyst.
+Copyright 2009 by Justin DeVuyst.
 
-This program is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
+This library is free software, you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
 

@@ -26,11 +26,11 @@ our $VERSION = '0.01';
  use Moose;
  BEGIN { extends qw( Test::Able ); }
  use Test::More;
- 
+
  sub foo: Test( 1 ) { ok( 1 ); }
- 
+
  package main;
- 
+
  my $t = MyTest->new;
  $t->meta->test_objects( $t );
  $t->meta->runtests;
@@ -40,10 +40,10 @@ above example.)
 
 =head1 DESCRIPTION
 
-An xUnit style testing framework inspired by Test::Class and built using Moose.
-It can do all the important things Test::Class can do and more.  The prime
-advantages of using this module instead of Test::Class are flexibility and
-power.  Namely, Moose.
+An xUnit style testing framework inspired by Test::Class and built using
+Moose.  It can do all the important things Test::Class can do and more.  The
+prime advantages of using this module instead of Test::Class are flexibility
+and power.  Namely, Moose.
 
 This module was created for a couple of reasons:
  1.  To address perceived limitations in, and downfalls of, Test::Class.
@@ -52,7 +52,7 @@ This module was created for a couple of reasons:
 
 The core code and documentation are in L<Test::Able::Object>.
 
-=head1 METHODS 
+=head1 METHODS
 
 =cut
 
@@ -82,8 +82,8 @@ sub BUILD {
 
 =item run_tests
 
-A convenience method around meta->run_tests().  Can be called as a class or
-instance method.
+A convenience method around L<Test::Able::Object/run_tests>.  Can be called as
+a class or instance method.
 
 =back
 
@@ -104,7 +104,9 @@ sub run_tests {
 
 Justin DeVuyst, C<justin@devuyst.com>
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 by Justin DeVuyst.
 
 This library is free software, you can redistribute it and/or modify it under
 the same terms as Perl itself.

@@ -4,6 +4,14 @@ use Moose::Role;
 use Moose::Util::TypeConstraints;
 require Test::Builder;
 
+=head1 NAME
+
+Test::Able::Planner
+
+=head1 ATTRIBUTES
+
+=over
+
 =item builder
 
 The Test::Builder instance.
@@ -35,20 +43,23 @@ has 'plan' => (
     },
 );
 
-=item master_plan
+=item runner_plan
 
 =cut
 
-has 'master_plan' => (
+has 'runner_plan' => (
     is => 'rw', isa => 'Plan', lazy_build => 1,
 );
 
-=item last_master_plan
+=item last_runner_plan
+
+=back
 
 =cut
 
-has 'last_master_plan' => (
-    is => 'rw', isa => 'Plan', predicate => 'has_last_master_plan',
+has 'last_runner_plan' => (
+    is => 'rw', isa => 'Plan', predicate => 'has_last_runner_plan',
+    clearer => 'clear_last_runner_plan',
 );
 
 sub _build_builder {

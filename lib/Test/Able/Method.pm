@@ -4,14 +4,40 @@ use Moose::Role;
 
 with qw( Test::Able::Planner );
 
+=head1 NAME
+
+Test::Able::Method
+
+=head1 ATTRIBUTES
+
+=over
+
 =item type
 
-Type of test method.  See Test::Able::Object::method_types() for the
+Type of test method.  See L<Test::Able::Object/method_types> for the
 list.
 
 =cut
 
 has 'type' => ( is => 'rw', isa => 'Str|Undef', lazy_build => 1, );
+
+=item do_setup
+
+Only relevant for methods of type test.  Boolean indicating whether
+to run the associated setup methods.
+
+=cut
+
+has 'do_setup' => ( is => 'rw', isa => 'Bool', lazy_build => 1, );
+
+=item do_teardown
+
+Only relevant for methods of type test.  Boolean indicating whether
+to run the associated teardown methods.
+
+=cut
+
+has 'do_teardown' => ( is => 'rw', isa => 'Bool', lazy_build => 1, );
 
 =item plan_builders
 
@@ -25,9 +51,15 @@ has 'plan_builders' => ( is => 'rw', isa => 'ArrayRef', lazy_build => 1, );
 
 List of names of methods used to determine the method's type.
 
+=back
+
 =cut
 
 has 'type_builders' => ( is => 'rw', isa => 'ArrayRef', lazy_build => 1, );
+
+sub _build_do_setup { 1; }
+
+sub _build_do_teardown { 1; }
 
 sub _build_plan_builders {
     my ( $self, ) = @_;
@@ -48,10 +80,14 @@ sub _build_plan {
     for ( @{ $self->plan_builders } ) {
         last if $plan = $self->$_;
     }
-    $plan ||= ( $self->type eq 'test' ? 'no_plan' : 0 );
+    $plan ||= 0;
 
     return $plan;
 }
+
+=head1 METHODS
+
+=over
 
 =item plan_from_attribute
 
@@ -139,6 +175,8 @@ sub type_from_sub_name {
 =item fetch_sub_attribute
 
 Return the subroutine attribute if one exists.
+
+=back
 
 =cut
 

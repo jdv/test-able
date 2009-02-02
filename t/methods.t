@@ -41,20 +41,20 @@ use warnings;
 
     eval q[
         package Baz;
-    
+
         no warnings 'redefine';
         sub BUILD {
             my ( $self, ) = @_;
-    
+
             $self->meta->startup_methods( [ grep {
                 $_->name !~ /bar/;
             } @{ $self->meta->startup_methods } ] );
             $self->meta->test_methods( [] );
-    
+
             $self->meta->meta->add_before_method_modifier(
                 'log', sub { push( @log, @_[ 1 .. $#_ ], ); }
             );
-    
+
             return;
         }
     ];
@@ -91,16 +91,16 @@ use warnings;
                 $_->package_name eq __PACKAGE__;
             } @{ $self->meta->test_methods };
                 $self->meta->test_methods( \@test_methods );
-    
+
             my @setup_methods = grep {
                 $_->package_name ne __PACKAGE__;
             } @{ $self->meta->setup_methods };
             $self->meta->setup_methods( \@setup_methods );
-    
+
             $self->meta->meta->add_before_method_modifier(
                 'log', sub { push( @log, @_[ 1 .. $#_ ], ); }
             );
-    
+
             return;
         }
     ];

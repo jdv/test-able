@@ -65,32 +65,31 @@ for ( @{ $t->meta->method_types } ) {
 # build and run Test::Able test object
 {
     my $t = Test::Able->new;
+    Test::Able->import;
 
     my @method_exec = (
         'startup_methods1',
-        
+
         'setup_methods1',    'setup_methods2',
         'test_methods1',
         'teardown_methods1', 'teardown_methods2',
         'teardown_methods3', 'teardown_methods4',
-        
+
         'setup_methods1',    'setup_methods2',
         'test_methods2',
         'teardown_methods1', 'teardown_methods2',
         'teardown_methods3', 'teardown_methods4',
-        
+
         'setup_methods1',    'setup_methods2',
         'test_methods3',
         'teardown_methods1', 'teardown_methods2',
         'teardown_methods3', 'teardown_methods4',
-        
+
         'shutdown_methods1', 'shutdown_methods2',
         'shutdown_methods3', 'shutdown_methods4',
         'shutdown_methods5'
     );
 
-    my $class = Moose::Meta::Class->create_anon_class;
-    $class->superclasses( 'Test::Able', );
     my $i;
     for ( @{ $t->meta->method_types } ) {
         my $accessor_name = $_ . '_methods';
@@ -102,11 +101,11 @@ for ( @{ $t->meta->method_types } ) {
                     "correct method ($method_name)"
                 );
             };
-            $class->add_method( $method_name, $method );
+            $t->meta->add_method( $method_name, $method );
         }
     }
 
-    $t->meta->test_objects( [ $class->new_object, ], );
+    $t->meta->test_objects( [ $t, ], );
     $t->meta->run_tests;
     cmp_ok( @method_exec, '==', 0, 'ran all methods' );
 }

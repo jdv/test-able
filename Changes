@@ -1,0 +1,15 @@
+0.02 - 2009-02-02
+ - Started using git for version control and put on github.com.
+ - Overloaded %{} on method lists for convenience.
+ - Changed default plan on test methods from no_plan to 0.
+ - Renamed master_plan and last_master_plan to runner_plan and
+   last_runner_plan.
+ - Added ability to skip implicit setup and/or teardown method
+   list execution.
+ - Cookbook rework.
+ - Added Test::Able::Object::current_method.
+ - Smaller code, documentation, and whitespace fixups.
+ - Initial CPAN release.
+
+0.01 - 2008-12-06
+ - Initial version in tarball form only.  No revision control.

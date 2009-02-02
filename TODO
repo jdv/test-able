@@ -1,7 +1,6 @@
-1.  Planning has to be fixed.
-1.1.  Skip and todo support.
-1.2.  All method types should default to plan of 0 to increase
-      chance of not having to go no_plan overall.
+# items are unordered
+
+l.  Skip and todo support.
 
 2.  Add option to stop whatever is running and run teardown and shutdown
     methods on first SIGINT.  This would get us a graceful kill.
@@ -20,7 +19,6 @@
 4.2.  See hmtest at $work for way to find and run all test classes seperately
       (creates .t files in temp dir) and not as one huge run.
 
-5.  Get someone to do a Test::Class compat layer.
+5.  Get someone to do Test::Class compat layer.  jmmills?
 
-6.  General cleanup
-6.1.  Resolve issues with Loop-Driven Cookbook entry.
+6.  Get someone to do Devel::Declare part for method metadata.  rafl?
