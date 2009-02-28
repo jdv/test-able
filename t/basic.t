@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+package Basic;
+
 use strict;
 use Test::More tests => 49;
 use warnings;
@@ -65,7 +67,7 @@ for ( @{ $t->meta->method_types } ) {
 # build and run Test::Able test object
 {
     my $t = Test::Able->new;
-    Test::Able->import;
+    $t->meta->clear_all_methods;
 
     my @method_exec = (
         'startup_methods1',
@@ -101,7 +103,11 @@ for ( @{ $t->meta->method_types } ) {
                     "correct method ($method_name)"
                 );
             };
-            $t->meta->add_method( $method_name, $method );
+
+            my ( $type ) = $method_name =~ /^(.*)_/;
+            Test::Able::__add_method(
+                type => $type, 'Test::Able', $method_name, $method,
+            );
         }
     }
 

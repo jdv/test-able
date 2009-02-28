@@ -1,3 +1,8 @@
+0.04 - 2009-??-??
+ - Added moose-like method declaration.
+ - Dumped sub attrs and sub name method decoration.
+ - Other minor fixes and cleanups.
+
 0.03 - 2009-02-02
  - Fixed META.yaml.
 

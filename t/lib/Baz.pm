@@ -1,18 +1,18 @@
 package Baz;
 
-use Moose;
-BEGIN { extends qw( Foo ); }
+use Foo;
+extends qw( Foo );
 use Test::More;
 
-sub startup : Startup( 7 ) { ok( 1 ) for 1 .. 7; }
+startup plan => 7, startup_ => sub { ok( 1 ) for 1 .. 7; };
 
-sub setup : Setup( 1 ) { ok( 1 ); }
+setup plan => 1, setup_ => sub { ok( 1 ); };
 
-sub test_9 { ok( 1 ) for 1 .. 9; }
+test plan => 9, test_9 => sub { ok( 1 ) for 1 .. 9; };
 
-sub teardown_2 { ok( 1 ) for 1 .. 2; }
+teardown plan => 2, teardown_2 => sub { ok( 1 ) for 1 .. 2; };
 
-sub shutdown : Shutdown( no_plan ) {}
+shutdown plan => 'no_plan', shutdown_ => sub {};
 
 sub other {}
 

@@ -176,9 +176,6 @@ sub run_tests {
         $_->meta->clear_current_test_object;
     }
 
-    # No more plan updates.
-    #$self->clear_last_runner_plan;
-
     return;
 }
 

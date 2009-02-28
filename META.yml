@@ -1,5 +1,5 @@
 ---
-abstract: ~
+abstract: 'xUnit with Moose'
 author:
   - 'Justin DeVuyst, C<justin@devuyst.com>'
 distribution_type: module
@@ -16,8 +16,7 @@ no_index:
     - t
 requires:
   Moose: 0.61
-  Sub::Identify: 0.03
   perl: 5.8.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.03
+version: 0.04

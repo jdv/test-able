@@ -2,7 +2,7 @@
 
 use lib 't/lib';
 
-use Baz;
+use Baz ();
 use strict;
 use Test::More tests => 15;
 use warnings;
@@ -77,7 +77,6 @@ use warnings;
 
 # test methods from subclass and setup methods from superclasses
 {
-    Class::MOP::remove_metaclass_by_name( 'Baz' );
     my @log;
 
     eval q[
@@ -90,7 +89,7 @@ use warnings;
             my @test_methods = grep {
                 $_->package_name eq __PACKAGE__;
             } @{ $self->meta->test_methods };
-                $self->meta->test_methods( \@test_methods );
+            $self->meta->test_methods( \@test_methods );
 
             my @setup_methods = grep {
                 $_->package_name ne __PACKAGE__;
@@ -105,6 +104,7 @@ use warnings;
         }
     ];
 
+    Baz->meta->clear_all_methods;
     my $t = Baz->new;
 
     $t->meta->dry_run( 1 );

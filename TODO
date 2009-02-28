@@ -19,6 +19,4 @@ l.  Skip and todo support.
 4.2.  See hmtest at $work for way to find and run all test classes seperately
       (creates .t files in temp dir) and not as one huge run.
 
-5.  Get someone to do Test::Class compat layer.  jmmills?
-
-6.  Get someone to do Devel::Declare part for method metadata.  rafl?
+5.  Get someone to do Devel::Declare part for method metadata.  rafl?

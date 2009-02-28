@@ -2,10 +2,10 @@
 
 use lib 't/lib';
 
-use Bar;
-use Baz;
+use Bar ();
+use Baz ();
 use strict;
-use Test::Able;
+use Test::Able ();
 use Test::More 'no_plan';
 use warnings;
 
@@ -21,7 +21,7 @@ my @methods_no_plan = qw(
     test_bar4
     teardown_0
     teardown_bar2
-    shutdown
+    shutdown_
     shutdown_bar3
 );
 
@@ -36,7 +36,6 @@ my @methods_no_plan = qw(
         $t->meta->get_method( 'test_bar2' )->plan, 0,
         'test method default to 0'
     );
-    Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # Object has no_plan if any method has no_plan.
@@ -44,7 +43,6 @@ my @methods_no_plan = qw(
     my $t = Baz->new;
     $t->meta->test_objects( [ $t, ] );
     ok( $t->meta->plan eq 'no_plan', 'obj no_plan if any meth no_plan' );
-    Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # Object has plan up front if all methods do.
@@ -53,7 +51,6 @@ my @methods_no_plan = qw(
     $t->meta->test_objects( [ $t, ] );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
     ok( $t->meta->plan == 114, 'obj has plan before run' );
-    Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 # Object can have deferred plan
@@ -63,8 +60,7 @@ my @methods_no_plan = qw(
     my $t = Baz->new;
     cmp_ok( $t->meta->plan, 'eq', 'no_plan', 'obj has no_plan before' );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
-    is( $t->meta->plan, 15, 'obj has plan after' );
-    Class::MOP::remove_metaclass_by_name( 'Bar' );
+    is( $t->meta->plan, 177, 'obj has plan after' );
 }
 
 # object plan changes when any of the method lists change.
@@ -76,7 +72,6 @@ my @methods_no_plan = qw(
     $t->meta->setup_methods( [] );
     ok( $t->meta->plan == 58, 'obj plan changes after method list change' );
     $t->run_tests;
-    Class::MOP::remove_metaclass_by_name( 'Bar' );
 }
 
 sub set_plan_on_no_plan_methods {

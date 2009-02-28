@@ -19,17 +19,17 @@ $t->meta->log.
 
 =item Define and Run in same file
 
-package MyTests;
+ package MyTests;
 
-use Moose;
-BEGIN { extend 'Test::Able'; }
+ use Test::Able;
+ extend 'Test::Able';
 
-sub test {}
+ test foo1 => sub {};
 
-...
+ ...
 
-MyTests->import;
-MyTests->run_tests;
+ MyTests->import;
+ MyTests->run_tests;
 
 Normally a test class will be defined in one file and run in another.  But
 sometimes its nice to do it all in one place.  The only non-obvious part is

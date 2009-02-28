@@ -2,9 +2,9 @@
 
 use lib 't/lib';
 
-use Bar;
-use Baz;
-use Foo;
+use Bar ();
+use Baz ();
+use Foo ();
 use strict;
 use Test::More tests => 2055;
 use warnings;

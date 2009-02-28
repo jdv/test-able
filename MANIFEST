@@ -11,7 +11,6 @@ lib/Test/Able.pm
 lib/Test/Able/Cookbook.pm
 lib/Test/Able/Method.pm
 lib/Test/Able/Method/Array.pm
-lib/Test/Able/Method/Attribute.pm
 lib/Test/Able/Object.pm
 lib/Test/Able/Planner.pm
 Makefile.PL
