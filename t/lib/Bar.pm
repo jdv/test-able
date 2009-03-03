@@ -1,7 +1,6 @@
 package Bar;
 
 use Test::Able;
-extends qw( Test::Able );
 use Test::More;
 
 startup plan => 1, startup_ => sub { ok( 1 ); };

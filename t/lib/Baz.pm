@@ -1,8 +1,9 @@
 package Baz;
 
-use Foo;
-extends qw( Foo );
+use Test::Able;
 use Test::More;
+
+extends qw( Foo );
 
 startup plan => 7, startup_ => sub { ok( 1 ) for 1 .. 7; };
 

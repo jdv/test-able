@@ -1,4 +1,4 @@
-package Test::Able::Method;
+package Test::Able::Role::Meta::Method;
 
 use Moose::Role;
 
@@ -6,7 +6,7 @@ with qw( Test::Able::Planner );
 
 =head1 NAME
 
-Test::Able::Method
+Test::Able::Role::Meta::Method
 
 =head1 ATTRIBUTES
 
@@ -14,8 +14,8 @@ Test::Able::Method
 
 =item type
 
-Type of test method.  See L<Test::Able::Object/method_types> for the
-list.
+Type of test method.  See L<Test::Able::Role::Meta::Class/method_types> for
+the list.
 
 =cut
 

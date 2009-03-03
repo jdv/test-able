@@ -1,6 +1,10 @@
-0.04 - 2009-??-??
+0.04 - 2009-03-03
  - Added moose-like method declaration.
  - Dumped sub attrs and sub name method decoration.
+ - Split Test::Able into the sugar package (Test::Able)
+   and the base class (Test::Able::Object).  Moved
+   Test::Able::Object/Method to Test::Able::Role::Meta::Class/Method
+   to accomodate.
  - Other minor fixes and cleanups.
 
 0.03 - 2009-02-02

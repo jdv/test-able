@@ -1,8 +1,9 @@
 package Foo;
 
-use Bar;
-extends qw( Bar );
+use Test::Able;
 use Test::More;
+
+extends qw( Bar );
 
 startup plan => 1, startup_foo1 => sub { ok( 1 ); };
 

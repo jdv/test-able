@@ -5,6 +5,8 @@ use Moose;
 use Moose::Exporter;
 use Moose::Util::MetaRole;
 use Test::Able::Object;
+use Test::Able::Role::Meta::Class;
+use Test::Able::Role::Meta::Method;
 
 =head1 NAME
 
@@ -22,8 +24,7 @@ our $VERSION = '0.04';
 
  package MyTest;
 
- use Test::Able; # only because Test::Able->import must run
- extends qw( Test::Able );
+ use Test::Able;
  use Test::More;
 
  startup          some_startup  => sub { ... };
@@ -64,64 +65,37 @@ To bring Moose to the Perl testing game.
 
 =back
 
-The core code and documentation are in L<Test::Able::Object>.
+The core code and documentation are in L<Test::Able::Role::Meta::Class>.
 
-=head1 METHODS
+=head1 EXPORTED FUNCTIONS
+
+In addition to exporting for Moose, Test::Able will export a handful
+of functions that can be used to declare test-related methods.
 
 =cut
 
-my ( $import, $unimport, ) = Moose::Exporter->build_import_methods(
+Moose::Exporter->setup_import_methods(
     with_caller => [
         qw( startup setup test teardown shutdown ),
     ],
     also => 'Moose',
 );
-*unimport = $unimport;
 
-my $ran_import;
-sub import {
-    my ( $class, ) = @_;
-    unless ( $ran_import ) {
-        Moose::Util::MetaRole::apply_metaclass_roles(
-            for_class              => $class,
-            metaclass_roles        => [ 'Test::Able::Object', ],
-            method_metaclass_roles => [ 'Test::Able::Method', ],
-        );
-        $ran_import++;
-    }
+sub init_meta {
+    shift;
+    my %options          = @_;
+    $options{base_class} = 'Test::Able::Object';
 
-    goto &{ $import };
-}
+    Moose->init_meta( %options, );
 
-sub BUILD {
-    my ( $self, ) = @_;
-
-    $self->meta->current_test_object( $self, );
-    $self->meta->build_all_methods;
-    $self->meta->clear_current_test_object;
-
-    return;
+    return Moose::Util::MetaRole::apply_metaclass_roles(
+        for_class              => $options{for_class},
+        metaclass_roles        => [ 'Test::Able::Role::Meta::Class',  ],
+        method_metaclass_roles => [ 'Test::Able::Role::Meta::Method', ],
+    );
 }
 
 =over
-
-=item run_tests
-
-A convenience method around L<Test::Able::Object/run_tests>.  Can be called as
-a class or instance method.
-
-=cut
-
-sub run_tests {
-    my ( $proto, ) = @_;
-
-    my $self = ref $proto ? $proto : $proto->new;
-    $self->meta->current_test_object( $self, );
-    $self->meta->run_tests;
-    $self->meta->clear_current_test_object;
-
-    return;
-}
 
 =item startup/setup/test/teardown/shutdown
 

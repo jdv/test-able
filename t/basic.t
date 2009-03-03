@@ -8,14 +8,14 @@ use warnings;
 
 use_ok( 'Test::Able' );
 
-my $t = Test::Able->new;
+my $t = Basic->new;
 
-isa_ok( $t, 'Test::Able' );
+isa_ok( $t, 'Basic' );
 isa_ok( $t->meta, 'Moose::Meta::Class' );
 isa_ok( $t->meta->builder, 'Test::Builder' );
 ok(
-    $t->meta->meta->does_role( 'Test::Able::Object' ),
-    'meta->meta does Object role'
+    $t->meta->meta->does_role( 'Test::Able::Role::Meta::Class' ),
+    'meta->meta does "meta(class)role"'
 );
 
 can_ok( $t->meta, 'test_objects' );
@@ -66,7 +66,7 @@ for ( @{ $t->meta->method_types } ) {
 
 # build and run Test::Able test object
 {
-    my $t = Test::Able->new;
+    my $t = Basic->new;
     $t->meta->clear_all_methods;
 
     my @method_exec = (
@@ -106,7 +106,7 @@ for ( @{ $t->meta->method_types } ) {
 
             my ( $type ) = $method_name =~ /^(.*)_/;
             Test::Able::__add_method(
-                type => $type, 'Test::Able', $method_name, $method,
+                type => $type, 'Basic', $method_name, $method,
             );
         }
     }

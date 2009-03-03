@@ -151,10 +151,10 @@ This will force the whole plan to be recalculated.
 
 Since we're running the setup and teardown method lists explicitly in the loop
 it would be nice to have the option of not running them implicitly (the normal
-behavior - see L<Test::Able::Object/run_methods> ).  Setting do_setup the
-do_teardown above to false is an easy way to accomplish just that.  Notice, as
-illustrated in this recipe, that the method lists can be accessed as a
-HashRef.
+behavior - see L<Test::Able::Role::Meta::Class/run_methods> ).  Setting
+do_setup the do_teardown above to false is an easy way to accomplish just
+that.  Notice, as illustrated in this recipe, that the method lists can be
+accessed as a HashRef.
 
 =back
 

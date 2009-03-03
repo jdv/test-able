@@ -18,7 +18,7 @@ use warnings;
 
 # class hierarchy.
 {
-    my $t = Test::Able->new;
+    my $t = Foo->new;
     $t->meta->test_objects( [
         Foo->new,
         Bar->new,
@@ -29,7 +29,7 @@ use warnings;
 
 # multiple instances.
 {
-    my $t = Test::Able->new;
+    my $t = Baz->new;
     $t->meta->test_objects( [
         Foo->new,
         Bar->new,
