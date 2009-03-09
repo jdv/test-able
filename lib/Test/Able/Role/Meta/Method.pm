@@ -6,7 +6,7 @@ with qw( Test::Able::Planner );
 
 =head1 NAME
 
-Test::Able::Role::Meta::Method
+Test::Able::Role::Meta::Method - Method metarole
 
 =head1 ATTRIBUTES
 
@@ -46,5 +46,18 @@ sub _build_do_setup { return 1; }
 sub _build_do_teardown { return 1; }
 
 sub _build_plan { return 0; }
+
+=head1 AUTHOR
+
+Justin DeVuyst, C<justin@devuyst.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 by Justin DeVuyst.
+
+This library is free software, you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
 
 1;

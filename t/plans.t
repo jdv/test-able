@@ -66,7 +66,7 @@ my @methods_no_plan = qw(
 # object plan changes when any of the method lists change.
 {
     my $t = Bar->new;
-    $t->meta->last_runner_plan( 8 );
+    $t->meta->last_runner_plan( -8 );
     set_plan_on_no_plan_methods( $t, @methods_no_plan, );
     ok( $t->meta->plan == 114, 'obj has plan' );
     $t->meta->setup_methods( [] );

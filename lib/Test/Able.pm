@@ -14,31 +14,31 @@ Test::Able - xUnit with Moose
 
 =head1 VERSION
 
-0.04
+0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
  package MyTest;
 
  use Test::Able;
- use Test::More;
+ use Test::More 'no_plan';
 
- startup          some_startup  => sub { ... };
- setup            some_setup    => sub { ... };
- test plan => 1,  foo           => sub { ok( 1 ); };
- test plan => 42, bar           => sub { ok( 1 ) for 1 .. 42; };
- teardown         some_teardown => sub { ... };
- shutdown         some_shutdown => sub { ... };
+ startup         some_startup  => sub { ... };
+ setup           some_setup    => sub { ... };
+ test plan => 1, foo           => sub { ok( 1 ); };
+ test            bar           => sub {
+     my @runtime_list = 1 .. 42;
+     $_[ 0 ]->meta->current_method->plan( scalar @runtime_list );
+     ok( 1 ) for @runtime_list;
+ };
+ teardown        some_teardown => sub { ... };
+ shutdown        some_shutdown => sub { ... };
 
- package main;
-
- use MyTest;
-
- MyTest->new->run_tests;
+ MyTest->run_tests;
 
 =head1 DESCRIPTION
 
@@ -102,17 +102,12 @@ sub init_meta {
 A more Moose-like way to do method declaration.  The syntax is similar to
 L<Moose/has> except its for test-related methods.
 
-These start with one of startup/setup/test/teardown/shutdown depending on
-what type of method you are defining.  Then comes any attribute name/value
-pairs to set in the L<Test::Able::Method> object.  The last pair must always
-be the method name and the coderef.  This is to disambiguate between
-the method name/code pair and another attribute in Test::Able::Method that
-happens to take a coderef.  Here are some examples:
-
-setup some_setup_method => sub { ... };
-test do_setup => 0, do_teardown => 0, some_test_method => sub { ... };
-shutdown foo => sub { ... }, bar => undef => baz => 42,
-  some_shutdown_method => sub { ... };
+These start with one of startup/setup/test/teardown/shutdown depending on what
+type of method you are defining.  Then comes any attribute name/value pairs to
+set in the L<Test::Able::Role::Meta::Method>-based object.  The last pair must
+always be the method name and the coderef.  This is to disambiguate between
+the method name/code pair and any another attribute in method metaclass that
+happens to take a coderef.  See the synopsis or the tests for examples.
 
 =back
 

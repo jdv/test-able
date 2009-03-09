@@ -106,7 +106,7 @@ for ( @{ $t->meta->method_types } ) {
 
             my ( $type ) = $method_name =~ /^(.*)_/;
             Test::Able::__add_method(
-                type => $type, 'Basic', $method_name, $method,
+                type => $type, 'Basic', plan => 1, $method_name, $method,
             );
         }
     }

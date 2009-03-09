@@ -1,6 +1,8 @@
 package Test::Able::Cookbook;
 
-#TODO: Turn all recipes into tests.
+=head1 NAME
+
+Test::Able::Cookbook
 
 =head1 Recipes
 
@@ -10,19 +12,20 @@ package Test::Able::Cookbook;
 
 =item Dumping execution plan
 
+ $ENV{ 'TEST_VERBOSE' } = 1;
  $t->meta->dry_run( 1 );
  $t->run_tests;
 
 Does everything but call the test (startup/setup/test/teardown/shutdown)
-methods.  And part of "everything" is logging the execution plan with
-$t->meta->log.
+methods and validate method plans.  And part of "everything" is logging the
+execution plan with $t->meta->log.
 
 =back
 
 =head2 Altering Method Lists
 
 Its not recommended to do any of this while a test run is in progress.
-The BUILD method in the test class could work.
+The BUILD method in the test class is the best place.
 
 =over
 
@@ -32,7 +35,7 @@ The BUILD method in the test class could work.
  for ( @{ $t->meta->method_types } ) {
      my $accessor = $_ . '_methods';
      $t->meta->$accessor( [ grep {
-         $_->package_name ne $t_pkg;
+         $_->package_name eq $t_pkg;
      } @{ $t->meta->$accessor } ] );
  }
 
@@ -40,12 +43,12 @@ Unlike Test::Class its very easy to shed the methods from superclasses.
 
 =item Explicit set
 
- my @methods = $t->meta->get_all_methods;
- $t->meta->startup_methods(  [ @methods[ 0..2 ]   ] );
- $t->meta->setup_methods(    [ @methods[ 2..4]    ] );
- $t->meta->test_methods(     [ @methods[ 5..10 ]  ] );
- $t->meta->teardown_methods( [ $methods[ 12 ]     ] );
- $t->meta->shutdown_methods( [ @methods[ 22..23 ] ] );
+ my @methods = sort { $a->name cmp $b->name } $t->meta->get_all_methods;
+ $t->meta->startup_methods(  [ @methods[ 17 .. 20 ] ] );
+ $t->meta->setup_methods(    [ @methods[ 25 .. 28 ] ] );
+ $t->meta->test_methods(     [ @methods[ 30,   32 ] ] );
+ $t->meta->teardown_methods( [ @methods[ 13 .. 16 ] ] );
+ $t->meta->shutdown_methods( [ @methods[ 21 .. 24 ] ] );
 
 =item Ordering
 
@@ -63,26 +66,28 @@ Simple xUnit purity test.
 =item Filtering
 
  $t->meta->test_methods(
-     [ grep { $_->name =~ /bla/; } @{ $t->meta->test_methods } ]
+     [ grep { $_->name !~ /bar/; } @{ $t->meta->test_methods } ]
  );
 
 =back
 
 =head2 Test Planning
 
-This functionality is not working well, yet.  This is partly because
+This functionality may not be working well, yet.  This is partly because
 Test::Builder does not yet support deferred planning.  For now, to emulate
 deferred planning, the plan should be set to no_plan up front.  Test::Able
 will then persuade Test::Builder to print the plan at the end.
+
+If this does not work, setting the plan to a numeric value will bypass
+all of Test::Able's deferred planning support.
 
 =over
 
 =item Setting method plan during test run
 
- test test_method => sub {
-     ...
-     $self->current_test_method->plan( $new_plan );
-     ...
+ test plan => "no_plan", new_test_method => sub {
+     $_[ 0 ]->meta->current_method->plan( 7 );
+     ok( 1 ) for 1 .. 7;
  };
 
 This will force the whole plan to be recalculated.
@@ -95,34 +100,23 @@ This will force the whole plan to be recalculated.
 
 =item Explicit setup & teardown for "Loop-Driven testing"
 
- sub BUILD {
+ test do_setup => 0, do_teardown => 0, test_on_x_and_y_and_z => sub {
      my ( $self, ) = @_;
 
-    my $m = $t->meta->test_methods->{ 'test_on_x_and_y_and_z' };
-    $m->do_setup( 0 );
-    $m->do_teardown( 0 );
+     my @x = qw( 1 2 3 );
+     my @y = qw( a b c );
+     my @z = qw( foo bar baz );
 
-    return;
- }
-
- test test_on_x_and_y_and_z => sub {
-     my ( $self, ) = @_;
-
-     @x = qw( 1 2 3 );
-     @y = qw( a b c );
-     @z = qw( foo bar baz );
-
-     my $plan = @x * @y * @x;
-     $plan += @{ $self->meta->setup_methods } * $plan
-       + @{ $self->meta->teardown_methods } * $plan;
-     $self->current_test_method->plan( $plan );
+     $self->meta->current_method->plan(
+         $self->get_loop_plan( 'test_bar1', @x * @y * @x, ),
+     );
 
      for my $x ( @x ) {
          for my $y ( @y ) {
              for my $z ( @z ) {
                  $self->meta->run_methods( 'setup' );
-                 $self->{ 'args' } = { x => $x, y=> $y, z => $z, };
-                 $self->some_test_method;
+                 $self->{ 'args' } = { x => $x, y => $y, z => $z, };
+                 $self->test_bar1;
                  $self->meta->run_methods( 'teardown' );
              }
          }
@@ -131,14 +125,48 @@ This will force the whole plan to be recalculated.
      return;
  };
 
+ sub get_loop_plan {
+     my ( $self, $test_method_name, $test_count, ) = @_;
+
+     my $test_plan
+       = $self->meta->test_methods->{ $test_method_name }->plan;
+     return 'no_plan' if $test_plan eq 'no_plan';
+
+     my $setup_plan;
+     for ( @{ $self->meta->setup_methods } ) {
+         return 'no_plan' if $_->plan eq 'no_plan';
+         $setup_plan += $_->plan;
+     }
+
+     my $teardown_plan;
+     for ( @{ $self->meta->teardown_methods } ) {
+         return 'no_plan' if $_->plan eq 'no_plan';
+         $teardown_plan += $_->plan;
+     }
+
+     return(
+         ( $test_plan + $setup_plan + $teardown_plan ) * $test_count
+     );
+ }
+
 Since we're running the setup and teardown method lists explicitly in the loop
 it would be nice to have the option of not running them implicitly (the normal
 behavior - see L<Test::Able::Role::Meta::Class/run_methods> ).  Setting
 do_setup the do_teardown above to false is an easy way to accomplish just
-that.  Notice, as illustrated in this recipe, that the method lists can be
-accessed as a HashRef.
+that.
 
 =back
+
+=head1 AUTHOR
+
+Justin DeVuyst, C<justin@devuyst.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 by Justin DeVuyst.
+
+This library is free software, you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
 

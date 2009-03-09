@@ -1,3 +1,13 @@
+0.05 - 2009-03-09
+ - Made Synopsis more interesting and put it in t/synopsis.t.
+ - Added plan failure handling at the method level.
+ - Fixed meta->current_method bug.
+ - Fixed various planning bugs.
+ - TEST_VERBOSE is now used to toggle meta->log.
+ - Fixed t/methods.t failure with respect to evaling BUILD into existence.
+ - Put Cookbook entries in t/cookbook.t and fixed resultant bugs.
+ - Various doc changes.
+
 0.04 - 2009-03-03
  - Added moose-like method declaration.
  - Dumped sub attrs and sub name method decoration.

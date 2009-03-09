@@ -12,6 +12,7 @@ use warnings;
 # direct subclass.
 {
     my $t = Bar->new;
+    $t->meta->get_method( 'test_4' )->plan( 4 );
     $t->meta->test_objects( [ $t, ], );
     $t->meta->run_tests;
 }

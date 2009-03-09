@@ -6,7 +6,7 @@ require Test::Builder;
 
 =head1 NAME
 
-Test::Able::Planner
+Test::Able::Planner - Planning role
 
 =head1 ATTRIBUTES
 
@@ -67,5 +67,18 @@ sub _build_builder {
 
     return Test::Builder->new;
 }
+
+=head1 AUTHOR
+
+Justin DeVuyst, C<justin@devuyst.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 by Justin DeVuyst.
+
+This library is free software, you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
 
 1;

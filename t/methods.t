@@ -79,30 +79,25 @@ use warnings;
 {
     my @log;
 
-    eval q[
-        package Baz;
+    Baz->meta->add_method( 'BUILD', sub {
+        my ( $self, ) = @_;
 
-        no warnings 'redefine';
-        sub BUILD {
-            my ( $self, ) = @_;
+        my @test_methods = grep {
+            $_->package_name eq 'Baz';
+        } @{ $self->meta->test_methods };
+        $self->meta->test_methods( \@test_methods );
 
-            my @test_methods = grep {
-                $_->package_name eq __PACKAGE__;
-            } @{ $self->meta->test_methods };
-            $self->meta->test_methods( \@test_methods );
+        my @setup_methods = grep {
+            $_->package_name ne 'Baz';
+        } @{ $self->meta->setup_methods };
+        $self->meta->setup_methods( \@setup_methods );
 
-            my @setup_methods = grep {
-                $_->package_name ne __PACKAGE__;
-            } @{ $self->meta->setup_methods };
-            $self->meta->setup_methods( \@setup_methods );
+        $self->meta->meta->add_before_method_modifier(
+            'log', sub { push( @log, @_[ 1 .. $#_ ], ); }
+        );
 
-            $self->meta->meta->add_before_method_modifier(
-                'log', sub { push( @log, @_[ 1 .. $#_ ], ); }
-            );
-
-            return;
-        }
-    ];
+        return;
+    } );
 
     Baz->meta->clear_all_methods;
     my $t = Baz->new;

@@ -9,7 +9,7 @@ with qw( Test::Able::Planner );
 
 =head1 NAME
 
-Test::Able::Role::Meta::Class
+Test::Able::Role::Meta::Class - Main metarole
 
 =head1 ATTRIBUTES
 
@@ -94,12 +94,23 @@ has 'test_runner_object' => (
 
 =item dry_run
 
-=back
-
 =cut
 
 has 'dry_run' => (
     is => 'rw', isa => 'Bool', default => 0,
+);
+
+=item on_method_plan_fail
+
+=back
+
+=cut
+
+enum MethodPlanFailAction => qw( die log );
+
+has 'on_method_plan_fail' => (
+    is => 'rw', isa => 'MethodPlanFailAction', default => 'log',
+    clearer => 'clear_on_method_plan_fail',
 );
 
 sub _build_method_types {
@@ -176,6 +187,11 @@ sub run_tests {
         $_->meta->clear_current_test_object;
     }
 
+    # Finalize planning for this run.
+    $self->clear_runner_plan;
+    $self->runner_plan;
+    $self->clear_last_runner_plan;
+
     return;
 }
 
@@ -191,11 +207,11 @@ sub run_methods {
     my $count         = @{ $methods };
     my $i;
     for ( @{ $methods } ) {
-        $self->current_method( $_ );
         if ( $type eq 'test' ) {
             $self->current_test_method( $_ );
             $self->run_methods( 'setup' ) if $_->do_setup;
         }
+        $self->current_method( $_ );
 
         my $method_name = $_->name;
         $self->log(
@@ -204,7 +220,20 @@ sub run_methods {
               . '('. ++$i . "/$count)"
         );
         unless ( $self->dry_run ) {
+            my $tests_before = $self->builder->{Curr_Test};
             $self->current_test_object->$method_name;
+            my $tests_diff = $self->builder->{Curr_Test} - $tests_before;
+
+            if ( $self->on_method_plan_fail && $_->plan =~ /^\d+$/ ) {
+                if ( $tests_diff != $_->plan ) {
+                    my $msg = "Method $method_name planned " . $_->plan
+                      . " tests but ran $tests_diff.";
+                    if ( $self->on_method_plan_fail eq 'die' ) {
+                        die "$msg\n";
+                    }
+                    else { $self->log( $msg ); }
+                }
+            }
         }
 
         if ( $type eq 'test' ) {
@@ -278,7 +307,7 @@ sub clear_all_methods {
 sub log {
     my $self = shift;
 
-    $self->builder->diag( @_ );
+    $self->builder->diag( @_ ) if $ENV{ 'TEST_VERBOSE' };
 
     return;
 }
@@ -287,7 +316,12 @@ sub _build_plan {
     my ( $self, ) = @_;
 
     my $plan;
-    my $test_method_count = @{ $self->test_methods };
+    my $test_method_with_setup_count = grep {
+        $_->do_setup;
+    } @{ $self->test_methods };
+    my $test_method_with_teardown_count = grep {
+        $_->do_teardown;
+    } @{ $self->test_methods };
     METHOD_TYPE: for ( @{ $self->method_types } ) {
         my $accessor_name = $_ . '_methods';
         for ( @{ $self->$accessor_name } ) {
@@ -296,8 +330,11 @@ sub _build_plan {
                     last METHOD_TYPE;
                 }
                 else {
-                    if ( $accessor_name =~ /^setup|teardown/ ) {
-                            $plan += $_->plan * $test_method_count;
+                    if ( $accessor_name eq 'setup_methods' ) {
+                        $plan += $_->plan * $test_method_with_setup_count;
+                    }
+                    elsif ( $accessor_name eq 'teardown_methods' ) {
+                        $plan += $_->plan * $test_method_with_teardown_count;
                     }
                     else { $plan += $_->plan; }
                 }
@@ -350,20 +387,22 @@ sub _build_runner_plan {
     }
     $plan ||= 'no_plan';
 
+    return $plan if $self->dry_run;
+
     # Update Test::Builder.
     if ( $self->builder->{No_Plan} || $self->builder->{was_No_Plan} ) {
         if ( $plan =~ /^\d+$/ ) {
             if ( $self->has_last_runner_plan ) {
                 my $last = $self->last_runner_plan;
-                my $plan_diff = $plan + ( $last eq 'no_plan' ? 0 : $last );
-                $self->builder->{No_Plan}     = 0;
-                $self->builder->{was_No_Plan} = 1;
+                my $plan_diff = $plan - ( $last eq 'no_plan' ? 0 : $last );
                 $self->builder->{Expected_Tests} += $plan_diff;
-                $self->last_runner_plan( $plan );
             }
             else {
                 $self->builder->{Expected_Tests} += $plan;
             }
+                $self->builder->{No_Plan}     = 0;
+                $self->builder->{was_No_Plan} = 1;
+                $self->last_runner_plan( $plan );
         }
         else { $self->builder->{No_Plan} = 1; }
     }
