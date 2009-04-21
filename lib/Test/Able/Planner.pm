@@ -8,6 +8,10 @@ require Test::Builder;
 
 Test::Able::Planner - Planning role
 
+=head1 DESCRIPTION
+
+This role represents the core of the planning support in Test::Able.
+
 =head1 ATTRIBUTES
 
 =over
@@ -22,7 +26,7 @@ has 'builder' => (
     is => 'ro', isa => 'Test::Builder', lazy_build => 1,
 );
 
-subtype 'Plan' => as 'Str' => where { /^no_plan|\d+$/; };
+subtype 'Test::Able::Plan' => as 'Str' => where { /^no_plan|\d+$/; };
 
 =item plan
 
@@ -31,7 +35,7 @@ Test plan similar to Test::Builder's.
 =cut
 
 has 'plan' => (
-    is => 'rw', isa => 'Plan', lazy_build => 1,
+    is => 'rw', isa => 'Test::Able::Plan', lazy_build => 1,
     trigger => sub {
         my ( $self, ) = @_;
 
@@ -48,7 +52,7 @@ has 'plan' => (
 =cut
 
 has 'runner_plan' => (
-    is => 'rw', isa => 'Plan', lazy_build => 1,
+    is => 'rw', isa => 'Test::Able::Plan', lazy_build => 1,
 );
 
 =item last_runner_plan
@@ -58,7 +62,7 @@ has 'runner_plan' => (
 =cut
 
 has 'last_runner_plan' => (
-    is => 'rw', isa => 'Plan', predicate => 'has_last_runner_plan',
+    is => 'rw', isa => 'Test::Able::Plan', predicate => 'has_last_runner_plan',
     clearer => 'clear_last_runner_plan',
 );
 

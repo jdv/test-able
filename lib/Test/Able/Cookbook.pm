@@ -31,13 +31,8 @@ The BUILD method in the test class is the best place.
 
 =item Remove superclass methods
 
- my $t_pkg = ref $t;
- for ( @{ $t->meta->method_types } ) {
-     my $accessor = $_ . '_methods';
-     $t->meta->$accessor( [ grep {
-         $_->package_name eq $t_pkg;
-     } @{ $t->meta->$accessor } ] );
- }
+use Test::Able::Helpers qw( prune_super_methods );
+$t->prune_super_methods;
 
 Unlike Test::Class its very easy to shed the methods from superclasses.
 
@@ -52,12 +47,9 @@ Unlike Test::Class its very easy to shed the methods from superclasses.
 
 =item Ordering
 
- use List::Util qw( shuffle );
+ use Test::Able::Helpers qw( shuffle_methods );
  for ( 1 .. 10 ) {
-     for ( @{ $t->meta->method_types } ) {
-         my $accessor = $_ . '_methods';
-         $t->meta->$accessor( [ shuffle @{ $t->meta->$accessor } ] );
-     }
+     $t->shuffle_methods;
     $t->run_tests;
  }
 
@@ -100,6 +92,8 @@ This will force the whole plan to be recalculated.
 
 =item Explicit setup & teardown for "Loop-Driven testing"
 
+use Test::Able::Helpers qw( get_loop_plan );
+
  test do_setup => 0, do_teardown => 0, test_on_x_and_y_and_z => sub {
      my ( $self, ) = @_;
 
@@ -124,30 +118,6 @@ This will force the whole plan to be recalculated.
 
      return;
  };
-
- sub get_loop_plan {
-     my ( $self, $test_method_name, $test_count, ) = @_;
-
-     my $test_plan
-       = $self->meta->test_methods->{ $test_method_name }->plan;
-     return 'no_plan' if $test_plan eq 'no_plan';
-
-     my $setup_plan;
-     for ( @{ $self->meta->setup_methods } ) {
-         return 'no_plan' if $_->plan eq 'no_plan';
-         $setup_plan += $_->plan;
-     }
-
-     my $teardown_plan;
-     for ( @{ $self->meta->teardown_methods } ) {
-         return 'no_plan' if $_->plan eq 'no_plan';
-         $teardown_plan += $_->plan;
-     }
-
-     return(
-         ( $test_plan + $setup_plan + $teardown_plan ) * $test_count
-     );
- }
 
 Since we're running the setup and teardown method lists explicitly in the loop
 it would be nice to have the option of not running them implicitly (the normal

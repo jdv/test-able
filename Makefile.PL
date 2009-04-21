@@ -4,6 +4,6 @@ use inc::Module::Install;
 all_from       'lib/Test/Able.pm';
   
 # Specific dependencies
-requires       'Moose'         => '0.61';
+requires       'Moose'         => '0.75';
 
 WriteAll;

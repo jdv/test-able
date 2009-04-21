@@ -14,18 +14,18 @@ Test::Able - xUnit with Moose
 
 =head1 VERSION
 
-0.05
+0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
  package MyTest;
 
  use Test::Able;
- use Test::More 'no_plan';
+ use Test::More;
 
  startup         some_startup  => sub { ... };
  setup           some_setup    => sub { ... };
@@ -42,10 +42,10 @@ our $VERSION = '0.05';
 
 =head1 DESCRIPTION
 
-An xUnit style testing framework inspired by Test::Class and built using
-Moose.  It can do all the important things Test::Class can do and more.  The
-prime advantages of using this module instead of Test::Class are flexibility
-and power.  Namely, Moose.
+An xUnit style testing framework inspired by L<Test::Class> and built using
+L<Moose>.  It can do all the important things Test::Class can do and more.
+The prime advantages of using this module instead of Test::Class are
+flexibility and power.  Namely, Moose.
 
 This module was created for a few of reasons:
 
@@ -64,8 +64,6 @@ To leverage existing Moose expertise for testing.
 To bring Moose to the Perl testing game.
 
 =back
-
-The core code and documentation are in L<Test::Able::Role::Meta::Class>.
 
 =head1 EXPORTED FUNCTIONS
 
@@ -104,10 +102,11 @@ L<Moose/has> except its for test-related methods.
 
 These start with one of startup/setup/test/teardown/shutdown depending on what
 type of method you are defining.  Then comes any attribute name/value pairs to
-set in the L<Test::Able::Role::Meta::Method>-based object.  The last pair must
-always be the method name and the coderef.  This is to disambiguate between
-the method name/code pair and any another attribute in method metaclass that
-happens to take a coderef.  See the synopsis or the tests for examples.
+set in the L<Test::Able::Role::Meta::Method>-based method metaclass object.
+The last pair must always be the method name and the coderef.  This is to
+disambiguate between the method name/code pair and any another attribute in
+the method metaclass that happens to take a coderef.  See the synopsis or the
+tests for examples.
 
 =back
 
@@ -136,6 +135,46 @@ sub __add_method {
 
     return;
 }
+
+=head1 Overview
+
+1. Build some test classes: a, b, & c.  The classes just have to be based on
+Test::Able.
+
+2. Fire up an instance of any of them to be the runner object.  Any test
+object can serve as the test_runner_object including itself.
+
+ my $b_obj = b->new;
+
+3. Setup the test_objects in the test_runner_object.
+
+ $b_obj->test_objects( [
+     a->new,
+     $b_obj,
+     c->new,
+ ] );
+
+4. Do the test run.  The test_objects will be run in order.
+
+ $b_obj->run_tests;
+
+=head1 SEE ALSO
+
+=over
+
+=item support
+
+ #moose on irc.perl.org
+
+=item code
+
+ http://github.com/jdv/test-able/tree/master
+
+=item L<Test::Class>
+
+=item L<Test::Builder>
+
+=back
 
 =head1 AUTHOR
 

@@ -27,17 +27,15 @@ Foo->meta->on_method_plan_fail( 'die' );
 
 # Remove superclass methods
 {
+    package Foo;
+
+    use Test::Able::Helpers qw( prune_super_methods );
+
     my $t = Foo->new;
     # Setting to -1 to account for the is() at the end of the "Dumping
     # execution plan" code that is outside of the Test::Able Classes.
     $t->meta->last_runner_plan( -1 );
-    my $t_pkg = ref $t;
-    for ( @{ $t->meta->method_types } ) {
-        my $accessor = $_ . '_methods';
-        $t->meta->$accessor( [ grep {
-            $_->package_name eq $t_pkg;
-        } @{ $t->meta->$accessor } ] );
-    }
+    $t->prune_super_methods;
     $t->run_tests;
 }
 
@@ -57,13 +55,13 @@ Foo->meta->on_method_plan_fail( 'die' );
 
 # Ordering
 {
+    package Bar;
+
+    use Test::Able::Helpers qw( shuffle_methods );
+
     my $t = Bar->new;
-    use List::Util qw( shuffle );
     for ( 1 .. 10 ) {
-        for ( @{ $t->meta->method_types } ) {
-            my $accessor = $_ . '_methods';
-            $t->meta->$accessor( [ shuffle @{ $t->meta->$accessor } ] );
-        }
+        $t->shuffle_methods;
         $t->run_tests;
     }
 }
@@ -97,6 +95,8 @@ Foo->meta->on_method_plan_fail( 'die' );
     eval q[
         package Bar;
 
+        use Test::Able::Helpers qw( get_loop_plan );
+
         test do_setup => 0, do_teardown => 0, test_on_x_and_y_and_z => sub {
             my ( $self, ) = @_;
 
@@ -121,30 +121,6 @@ Foo->meta->on_method_plan_fail( 'die' );
 
             return;
         };
-
-        sub get_loop_plan {
-            my ( $self, $test_method_name, $test_count, ) = @_;
-
-            my $test_plan
-              = $self->meta->test_methods->{ $test_method_name }->plan;
-            return 'no_plan' if $test_plan eq 'no_plan';
-
-            my $setup_plan;
-            for ( @{ $self->meta->setup_methods } ) {
-                return 'no_plan' if $_->plan eq 'no_plan';
-                $setup_plan += $_->plan;
-            }
-
-            my $teardown_plan;
-            for ( @{ $self->meta->teardown_methods } ) {
-                return 'no_plan' if $_->plan eq 'no_plan';
-                $teardown_plan += $_->plan;
-            }
-
-            return(
-                ( $test_plan + $setup_plan + $teardown_plan ) * $test_count
-            );
-        }
     ];
 
     # Dumping the test methods list so the new method gets picked up on build.

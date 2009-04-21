@@ -3,7 +3,7 @@
 package MyTest;
 
 use Test::Able;
-use Test::More 'no_plan';
+use Test::More;
 
 startup         some_startup  => sub {};
 setup           some_setup    => sub {};

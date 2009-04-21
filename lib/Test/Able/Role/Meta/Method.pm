@@ -8,6 +8,12 @@ with qw( Test::Able::Planner );
 
 Test::Able::Role::Meta::Method - Method metarole
 
+=head1 DESCRIPTION
+
+This metarole gets applied to the Moose::Meta::Method metaclass objects that
+represent methods in a Test::Able-based class or role.  This metarole also
+pulls in L<Test::Able::Planner>.
+
 =head1 ATTRIBUTES
 
 =over

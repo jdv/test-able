@@ -1,3 +1,11 @@
+0.06 - 2009-04-21
+ - Namespaced types.
+ - Added exception handling.
+ - More documentation.
+ - Automatically set bulider->no_plan if appropriate.
+ - Added Test::Able::Helpers.
+ - Added Test::Able::Role.
+
 0.05 - 2009-03-09
  - Made Synopsis more interesting and put it in t/synopsis.t.
  - Added plan failure handling at the method level.

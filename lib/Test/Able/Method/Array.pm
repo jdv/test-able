@@ -11,7 +11,7 @@ Instead of having to do this:
 
  my ( $m ) = grep {
      $_->name eq 'test_on_x_and_y_and_z';
- } $t->meta->test_methods;
+ } @{ $t->meta->test_methods };
 
 one can do this:
 
