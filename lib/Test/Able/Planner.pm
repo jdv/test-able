@@ -2,7 +2,9 @@ package Test::Able::Planner;
 
 use Moose::Role;
 use Moose::Util::TypeConstraints;
+use strict;
 require Test::Builder;
+use warnings;
 
 =head1 NAME
 

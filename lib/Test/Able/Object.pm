@@ -1,6 +1,9 @@
 package Test::Able::Object;
 
 use Moose;
+use strict;
+use warnings;
+
 extends( 'Moose::Object' );
 
 =head1 NAME
@@ -16,6 +19,13 @@ Moose::Object.
 
 =head1 METHODS
 
+=over
+
+=item BUILD
+
+Standard Moose BUILD method that builds all the test-related method
+lists.
+
 =cut
 
 sub BUILD {
@@ -27,8 +37,6 @@ sub BUILD {
 
     return;
 }
-
-=over
 
 =item run_tests
 

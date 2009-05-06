@@ -1,5 +1,8 @@
 package Test::Able::Method::Array;
 
+use strict;
+use warnings;
+
 =head1 NAME
 
 Test::Able::Method::Array - Test-related method list

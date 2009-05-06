@@ -1,6 +1,8 @@
 package Test::Able::Role::Meta::Method;
 
 use Moose::Role;
+use strict;
+use warnings;
 
 with qw( Test::Able::Planner );
 

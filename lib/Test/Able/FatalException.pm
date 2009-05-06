@@ -4,6 +4,8 @@ use Moose;
 use overload
   '""' => sub { return shift->message; },
   fallback => 1;
+use strict;
+use warnings;
 
 =head1 NAME
 

@@ -1,6 +1,7 @@
 package Test::Able::Helpers;
 
 use List::Util qw( shuffle );
+use strict;
 use Sub::Exporter -setup => {
     exports => [ qw(
         prune_super_methods
@@ -15,6 +16,7 @@ use Sub::Exporter -setup => {
         ), ],
     },
 };
+use warnings;
 
 =head1 NAME
 

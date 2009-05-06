@@ -1,9 +1,9 @@
 use inc::Module::Install;
-  
-# Define metadata
-all_from       'lib/Test/Able.pm';
-  
-# Specific dependencies
-requires       'Moose'         => '0.75';
+
+all_from 'lib/Test/Able.pm';
+
+requires 'Moose' => '0.75';
+
+recursive_author_tests( 'xt' );
 
 WriteAll;

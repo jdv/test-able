@@ -3,7 +3,9 @@ package Test::Able::Role;
 use Moose::Role;
 use Moose::Exporter;
 use Moose::Util::MetaRole;
+use strict;
 use Test::Able::Role::Meta::Method;
+use warnings;
 
 =head1 NAME
 

@@ -3,8 +3,10 @@ package Test::Able::Role::Meta::Class;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 use Scalar::Util;
+use strict;
 use Test::Able::Role::Meta::Method;
 use Test::Able::Method::Array;
+use warnings;
 
 with qw( Test::Able::Planner );
 
