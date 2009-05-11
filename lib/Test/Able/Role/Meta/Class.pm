@@ -179,11 +179,11 @@ execution plan.  The levels are defined as follows. The startup and shutdown
 methods are at the first level.  The setup and teardown methods are the second
 level.  And test methods are the third and last level.  Or in visual form:
 
-startup
-    setup
-        test
-    teardown
-shutdown
+ startup
+     setup
+         test
+     teardown
+ shutdown
 
 In addition, when this attribute is set to continue or continue_at_level the
 exceptions will be recorded in the method_exceptions attribute of the

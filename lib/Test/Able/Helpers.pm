@@ -36,11 +36,20 @@ Test::Able::Helpers are a collection of mixin methods that can
 be exported into the calling test class.  These are meant to
 make doing some things with Test::Able easier.
 
+See L<Test::Able::Cookbook> for example usages.
+
 =head1 METHODS
 
 =over
 
 =item prune_super_methods
+
+Removes any test-related methods from the associated method list if its from
+a superclass (literally not from $self's class).
+
+By default it does this for all test-related method types.
+Type names can be optionally provided as args to limit what
+types this is done for.
 
 =cut
 
@@ -62,6 +71,12 @@ sub prune_super_methods {
 
 =item shuffle_methods
 
+Randomizes the test-related method lists.
+
+By default it does this for all test-related method types.
+Type names can be optionally provided as args to limit what
+types this is done for.
+
 =cut
 
 sub shuffle_methods {
@@ -78,6 +93,15 @@ sub shuffle_methods {
 }
 
 =item get_loop_plan
+
+Calculates the plan for a test method when used in a "Loop-Driven" context.
+This assumes the setup and teardown method lists are being explicitly
+run as many times as the test method.
+
+Has two required args: the test method name and the test count.
+The test method name is used to lookup the plan of the test method
+itself.  The test count is the number of times the test method will
+be called.
 
 =back
 

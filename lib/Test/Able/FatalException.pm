@@ -13,7 +13,7 @@ Test::Able::FatalException - Fatal Exception Class
 
 =head1 SYNOPSIS
 
-Test::Able::FatalException->throw->( 'get me outta here - for real!' );
+ Test::Able::FatalException->throw->( 'get me outta here - for real!' );
 
 =head1 DESCRIPTION
 

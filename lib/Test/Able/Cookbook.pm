@@ -34,8 +34,8 @@ The BUILD method in the test class is the best place.
 
 =item Remove superclass methods
 
-use Test::Able::Helpers qw( prune_super_methods );
-$t->prune_super_methods;
+ use Test::Able::Helpers qw( prune_super_methods );
+ $t->prune_super_methods;
 
 Unlike Test::Class its very easy to shed the methods from superclasses.
 
@@ -68,14 +68,6 @@ Simple xUnit purity test.
 
 =head2 Test Planning
 
-This functionality may not be working well, yet.  This is partly because
-Test::Builder does not yet support deferred planning.  For now, to emulate
-deferred planning, the plan should be set to no_plan up front.  Test::Able
-will then persuade Test::Builder to print the plan at the end.
-
-If this does not work, setting the plan to a numeric value will bypass
-all of Test::Able's deferred planning support.
-
 =over
 
 =item Setting method plan during test run
@@ -95,7 +87,7 @@ This will force the whole plan to be recalculated.
 
 =item Explicit setup & teardown for "Loop-Driven testing"
 
-use Test::Able::Helpers qw( get_loop_plan );
+ use Test::Able::Helpers qw( get_loop_plan );
 
  test do_setup => 0, do_teardown => 0, test_on_x_and_y_and_z => sub {
      my ( $self, ) = @_;

@@ -13,11 +13,11 @@ Test::Able::Role -The Test::Able Role
 
 =head1 SYNOPSIS
 
-package MyTest::SomeRole;
+ package MyTest::SomeRole;
 
-use Test::Able::Role;
+ use Test::Able::Role;
 
-test some_test => sub {};
+ test some_test => sub {};
 
 =head1 DESCRIPTION
 
