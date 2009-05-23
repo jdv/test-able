@@ -1,6 +1,9 @@
+0.08 - 2009-05-23
+ - Bugfix for planning in a role (RT 46290).
+
 0.07 - 2009-05-11
--Doc updates
--Kwalitee improvements
+ - Doc updates
+ - Kwalitee improvements
 
 0.06 - 2009-04-21
  - Namespaced types.
