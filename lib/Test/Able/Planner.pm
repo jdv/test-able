@@ -69,7 +69,10 @@ has 'plan' => (
         my ( $self, ) = @_;
 
         if ( $self->isa( 'Moose::Meta::Method' ) ) {
-            $self->associated_metaclass->clear_plan;
+            my $in_a_role = $self->associated_metaclass->isa(
+                'Moose::Meta::Role'
+            );
+            $self->associated_metaclass->clear_plan unless $in_a_role;
         }
 
         return;

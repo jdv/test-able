@@ -496,7 +496,7 @@ sub _build_plan {
                 }
         }
     }
-    $plan ||= 'no_plan';
+    $plan = 'no_plan' unless defined $plan;
 
     return $plan;
 }
@@ -542,7 +542,7 @@ sub _build_runner_plan {
 
         $_->meta->clear_current_test_object;
     }
-    $plan ||= 'no_plan';
+    $plan = 'no_plan' unless defined $plan;
 
     return $plan if $self->dry_run;
 

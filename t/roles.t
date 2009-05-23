@@ -4,7 +4,7 @@ use lib 't/lib';
 
 use Class1 ();
 use strict;
-use Test::More tests => 5;
+use Test::More tests => 18;
 use warnings;
 
 my $t = Class1->new;
@@ -38,3 +38,7 @@ is_deeply(
     [ 'class1_shutdown_1', ],
     'shutdown',
 );
+
+is( $t->meta->plan, 12, 'planning with Test::Able::Role' );
+
+$t->run_tests;
