@@ -43,17 +43,28 @@ has 'do_setup' => ( is => 'rw', isa => 'Bool', lazy_build => 1, );
 Only relevant for methods of type test.  Boolean indicating whether
 to run the associated teardown methods.
 
+=cut
+
+has 'do_teardown' => ( is => 'rw', isa => 'Bool', lazy_build => 1, );
+
+=item order
+
+An integer value used to influence ordering of methods in the method lists.
+Defaults to 0.
+
 =back
 
 =cut
 
-has 'do_teardown' => ( is => 'rw', isa => 'Bool', lazy_build => 1, );
+has 'order' => ( is => 'rw', isa => 'Int', lazy_build => 1, );
 
 sub _build_do_setup { return 1; }
 
 sub _build_do_teardown { return 1; }
 
 sub _build_plan { return 0; }
+
+sub _build_order { return 0; }
 
 =head1 AUTHOR
 

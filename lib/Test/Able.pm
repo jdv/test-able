@@ -16,11 +16,11 @@ Test::Able - xUnit with Moose
 
 =head1 VERSION
 
-0.08
+0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 SYNOPSIS
 
@@ -164,6 +164,8 @@ object can serve as the test_runner_object including itself.
 
 =over
 
+=item L<Test::Able::Cookbook>
+
 =item support
 
  #moose on irc.perl.org
@@ -171,6 +173,8 @@ object can serve as the test_runner_object including itself.
 =item code
 
  http://github.com/jdv/test-able/tree/master
+
+=item L<Moose>
 
 =item L<Test::Class>
 

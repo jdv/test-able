@@ -412,7 +412,9 @@ sub build_methods {
     }
 
     return bless(
-        [ sort { $a->name cmp $b->name } @methods ],
+        [ sort {
+            $a->order <=> $b->order || $a->name cmp $b->name
+        } @methods ],
         'Test::Able::Method::Array'
     );
 }

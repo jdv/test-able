@@ -1,3 +1,7 @@
+0.09 - 2009-05-30
+ - Added method ordering.
+ - Minor doc updates.
+
 0.08 - 2009-05-23
  - Bugfix for planning in a role (RT 46290).
 
