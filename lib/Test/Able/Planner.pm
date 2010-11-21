@@ -99,7 +99,8 @@ Used by the test runner object in calculating Test::Builder's plan.
 =cut
 
 has 'last_runner_plan' => (
-    is => 'rw', isa => 'Test::Able::Plan', predicate => 'has_last_runner_plan',
+    is => 'rw', isa => 'Test::Able::Plan',
+    predicate => 'has_last_runner_plan',
     clearer => 'clear_last_runner_plan',
 );
 

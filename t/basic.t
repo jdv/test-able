@@ -102,6 +102,7 @@ for ( @{ $t->meta->method_types } ) {
                     shift @method_exec, $method_name,
                     "correct method ($method_name)"
                 );
+                $_ = undef;
             };
 
             my ( $type ) = $method_name =~ /^(.*)_/;

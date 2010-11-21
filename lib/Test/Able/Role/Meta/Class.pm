@@ -282,8 +282,8 @@ sub run_tests {
     my ( $self, ) = @_;
 
     $self->test_runner_object( $self, );
-    for ( @{ $self->test_objects } ) {
-        $_->meta->test_runner_object( $self, );
+    for my $test_object ( @{ $self->test_objects } ) {
+        $test_object->meta->test_runner_object( $self, );
     }
 
     # Initial plan calc.
@@ -291,16 +291,16 @@ sub run_tests {
 
     $self->log( "$self->run_tests() called but there are no test objects" )
       unless @{ $self->test_objects };
-    for ( @{ $self->test_objects } ) {
-        $_->meta->current_test_object( $_ );
+    for my $test_object ( @{ $self->test_objects } ) {
+        $test_object->meta->current_test_object( $test_object );
 
         my $exceptions_before_startup = @{ $self->method_exceptions };
-        $_->meta->run_methods( 'startup'  );
-        $_->meta->run_methods( 'test'     )
+        $test_object->meta->run_methods( 'startup'  );
+        $test_object->meta->run_methods( 'test'     )
           if $exceptions_before_startup == @{ $self->method_exceptions };
-        $_->meta->run_methods( 'shutdown' );
+        $test_object->meta->run_methods( 'shutdown' );
 
-        $_->meta->clear_current_test_object;
+        $test_object->meta->clear_current_test_object;
     }
 
     # Finalize planning for this run.
@@ -327,22 +327,22 @@ sub run_methods {
     my $methods       = $self->$accessor_name;
     my $count         = @{ $methods };
     my $i;
-    for ( @{ $methods } ) {
+    for my $method ( @{ $methods } ) {
         my $setup_exception_count;
         if ( $type eq 'test' ) {
-            $self->current_test_method( $_ );
+            $self->current_test_method( $method );
             my $exceptions_before_setup = @{ $self->method_exceptions };
-            $self->run_methods( 'setup' ) if $_->do_setup;
+            $self->run_methods( 'setup' ) if $method->do_setup;
             $setup_exception_count
               = @{ $self->method_exceptions } - $exceptions_before_setup;
         }
 
-        my $method_name = $_->name;
+        my $method_name = $method->name;
         unless ( $setup_exception_count ) {
-            $self->current_method( $_ );
+            $self->current_method( $method );
             $self->log(
                 $self->current_test_object . '->' . $method_name
-                . "($type/" . $_->plan . ")"
+                . "($type/" . $method->plan . ")"
                 . '('. ++$i . "/$count)"
             );
         }
@@ -367,10 +367,10 @@ sub run_methods {
                   && $exception->isa( 'Test::Able::FatalException' );
             }
 
-            if ( $self->on_method_plan_fail && $_->plan =~ /^\d+$/ ) {
+            if ( $self->on_method_plan_fail && $method->plan =~ /^\d+$/ ) {
                 my $tests_diff = $self->builder->{Curr_Test} - $tests_before;
-                if ( $tests_diff != $_->plan ) {
-                    my $msg = "Method $method_name planned " . $_->plan
+                if ( $tests_diff != $method->plan ) {
+                    my $msg = "Method $method_name planned " . $method->plan
                       . " tests but ran $tests_diff.";
                     if ( $self->on_method_plan_fail eq 'die' ) {
                         die "$msg\n";
@@ -381,7 +381,7 @@ sub run_methods {
         }
 
         if ( $type eq 'test' ) {
-            $self->run_methods( 'teardown' ) if $_->do_teardown;
+            $self->run_methods( 'teardown' ) if $method->do_teardown;
             $self->clear_current_test_method;
         }
         $self->clear_current_method;
@@ -403,10 +403,10 @@ sub build_methods {
     my ( $self, $type, ) = @_;
 
     my @methods;
-    for ( $self->current_test_object->meta->get_all_methods ) {
-        if ( $_->can( 'type' ) ) {
-            my $method_type = $_->type;
-            push( @methods, $_ )
+    for my $method ( $self->current_test_object->meta->get_all_methods ) {
+        if ( $method->can( 'type' ) ) {
+            my $method_type = $method->type;
+            push( @methods, $method )
               if defined $method_type && $method_type eq $type;
         }
     }
@@ -428,9 +428,9 @@ Convenience method to call build_methods() for all method types.
 sub build_all_methods {
     my ( $self, ) = @_;
 
-    for ( @{ $self->method_types } ) {
-        my $accessor_name =          $_ . '_methods';
-        my $has_name      = 'has_' . $_ . '_methods';
+    for my $type ( @{ $self->method_types } ) {
+        my $accessor_name =          $type . '_methods';
+        my $has_name      = 'has_' . $type . '_methods';
         $self->$accessor_name unless $self->$has_name;
     }
 
@@ -446,9 +446,9 @@ Convenience method to clear all the test-related method lists out.
 sub clear_all_methods {
     my ( $self, ) = @_;
 
-    for ( @{ $self->method_types } ) {
-        my $clear_name = 'clear_' . $_ . '_methods';
-        my $has_name   = 'has_'   . $_ . '_methods';
+    for my $type ( @{ $self->method_types } ) {
+        my $clear_name = 'clear_' . $type . '_methods';
+        my $has_name   = 'has_'   . $type . '_methods';
         $self->$clear_name if $self->$has_name;
     }
 
@@ -480,21 +480,23 @@ sub _build_plan {
     my $test_method_with_teardown_count = grep {
         $_->do_teardown;
     } @{ $self->test_methods };
-    METHOD_TYPE: for ( @{ $self->method_types } ) {
-        my $accessor_name = $_ . '_methods';
-        for ( @{ $self->$accessor_name } ) {
-                if ( $_->plan eq 'no_plan' ) {
-                    $plan = $_->plan;
+    METHOD_TYPE: for my $type ( @{ $self->method_types } ) {
+        my $accessor_name = $type . '_methods';
+        for my $method ( @{ $self->$accessor_name } ) {
+                if ( $method->plan eq 'no_plan' ) {
+                    $plan = $method->plan;
                     last METHOD_TYPE;
                 }
                 else {
                     if ( $accessor_name eq 'setup_methods' ) {
-                        $plan += $_->plan * $test_method_with_setup_count;
+                        $plan
+                          += $method->plan * $test_method_with_setup_count;
                     }
                     elsif ( $accessor_name eq 'teardown_methods' ) {
-                        $plan += $_->plan * $test_method_with_teardown_count;
+                        $plan
+                          += $method->plan * $test_method_with_teardown_count;
                     }
-                    else { $plan += $_->plan; }
+                    else { $plan += $method->plan; }
                 }
         }
     }
@@ -532,17 +534,17 @@ sub _build_runner_plan {
 
     # Compute current plan.
     my $plan;
-    for ( @{ $self->test_objects } ) {
-        $_->meta->current_test_object( $_ );
+    for my $test_object ( @{ $self->test_objects } ) {
+        $test_object->meta->current_test_object( $test_object );
 
-        my $object_plan = $_->meta->plan;
+        my $object_plan = $test_object->meta->plan;
         if ( $object_plan eq 'no_plan' ) {
             $plan = $object_plan;
             last;
         }
         else { $plan += $object_plan; }
 
-        $_->meta->clear_current_test_object;
+        $test_object->meta->clear_current_test_object;
     }
     $plan = 'no_plan' unless defined $plan;
 

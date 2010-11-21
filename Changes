@@ -1,3 +1,8 @@
+0.10 - 2010-11-20
+ - Fixed to use new Moose::Util::MetaRole API.
+ - Upgraded Moose dep to v0.94.
+ - Removed $_ where not necessary.
+
 0.09 - 2009-05-30
  - Added method ordering.
  - Minor doc updates.

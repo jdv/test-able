@@ -59,8 +59,8 @@ sub prune_super_methods {
     @types = @{ $self->meta->method_types } unless @types;
 
     my $self_pkg = ref $self;
-    for ( @types ) {
-        my $accessor = $_ . '_methods';
+    for my $type ( @types ) {
+        my $accessor = $type . '_methods';
         $self->meta->$accessor( [ grep {
             $_->package_name eq $self_pkg;
         } @{ $self->meta->$accessor } ] );
@@ -84,8 +84,8 @@ sub shuffle_methods {
 
     @types = @{ $self->meta->method_types } unless @types;
 
-    for ( @types ) {
-        my $accessor = $_ . '_methods';
+    for my $type ( @types ) {
+        my $accessor = $type . '_methods';
         $self->meta->$accessor( [ shuffle @{ $self->meta->$accessor } ] );
     }
 
@@ -115,15 +115,15 @@ sub get_loop_plan {
     return 'no_plan' if $test_plan eq 'no_plan';
 
     my $setup_plan;
-    for ( @{ $self->meta->setup_methods } ) {
-        return 'no_plan' if $_->plan eq 'no_plan';
-        $setup_plan += $_->plan;
+    for my $method ( @{ $self->meta->setup_methods } ) {
+        return 'no_plan' if $method->plan eq 'no_plan';
+        $setup_plan += $method->plan;
     }
 
     my $teardown_plan;
-    for ( @{ $self->meta->teardown_methods } ) {
-        return 'no_plan' if $_->plan eq 'no_plan';
-        $teardown_plan += $_->plan;
+    for my $method ( @{ $self->meta->teardown_methods } ) {
+        return 'no_plan' if $method->plan eq 'no_plan';
+        $teardown_plan += $method->plan;
     }
 
     return(

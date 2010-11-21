@@ -88,10 +88,12 @@ sub init_meta {
 
     Moose->init_meta( %options, );
 
-    return Moose::Util::MetaRole::apply_metaclass_roles(
-        for_class              => $options{for_class},
-        metaclass_roles        => [ 'Test::Able::Role::Meta::Class',  ],
-        method_metaclass_roles => [ 'Test::Able::Role::Meta::Method', ],
+    return Moose::Util::MetaRole::apply_metaroles(
+        for             => $options{for_class},
+        class_metaroles => {
+            class       => [ 'Test::Able::Role::Meta::Class',  ],
+            method      => [ 'Test::Able::Role::Meta::Method', ],
+        },
     );
 }
 
