@@ -43,11 +43,11 @@ Foo->meta->on_method_plan_fail( 'die' );
 {
     my $t = Bar->new;
     my @methods = sort { $a->name cmp $b->name } $t->meta->get_all_methods;
-    $t->meta->startup_methods(  [ @methods[ 17 .. 20 ] ] );
-    $t->meta->setup_methods(    [ @methods[ 25 .. 28 ] ] );
-    $t->meta->test_methods(     [ @methods[ 30,   32 ] ] );
-    $t->meta->teardown_methods( [ @methods[ 13 .. 16 ] ] );
-    $t->meta->shutdown_methods( [ @methods[ 21 .. 24 ] ] );
+    $t->meta->startup_methods(  [ grep { $_->name =~ /^shutdown_/ } @methods ] );
+    $t->meta->setup_methods(    [ grep { $_->name =~ /^teardown_/ } @methods ] );
+    $t->meta->test_methods(     [ grep { $_->name =~ /^test_bar[14]/ } @methods ] );
+    $t->meta->teardown_methods( [ grep { $_->name =~ /^setup_/    } @methods ] );
+    $t->meta->shutdown_methods( [ grep { $_->name =~ /^startup_/  } @methods ] );
     $t->run_tests;
     # Dumping the unusual method lists.
     $t->meta->clear_all_methods;
