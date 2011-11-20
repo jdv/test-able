@@ -41,12 +41,12 @@ Unlike Test::Class its very easy to shed the methods from superclasses.
 
 =item Explicit set
 
- my @methods = sort { $a->name cmp $b->name } $t->meta->get_all_methods;
- $t->meta->startup_methods(  [ @methods[ 17 .. 20 ] ] );
- $t->meta->setup_methods(    [ @methods[ 25 .. 28 ] ] );
- $t->meta->test_methods(     [ @methods[ 30,   32 ] ] );
- $t->meta->teardown_methods( [ @methods[ 13 .. 16 ] ] );
- $t->meta->shutdown_methods( [ @methods[ 21 .. 24 ] ] );
+ my @meth = sort { $a->name cmp $b->name } $t->meta->get_all_methods;
+ $t->meta->startup_methods(  [ grep { $_->name =~ /^shutdown_/ } @meth ] );
+ $t->meta->setup_methods(    [ grep { $_->name =~ /^teardown_/ } @meth ] );
+ $t->meta->test_methods(     [ grep { $_->name =~ /^test_bar[14]/ } @meth ] );
+ $t->meta->teardown_methods( [ grep { $_->name =~ /^setup_/ } @meth ] );
+ $t->meta->shutdown_methods( [ grep { $_->name =~ /^startup_/ } @meth ] );
 
 =item Ordering
 
