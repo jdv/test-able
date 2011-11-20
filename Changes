@@ -1,3 +1,7 @@
+0.11 - 2011-11-20
+- Fix t/cookbook.t because UNIVERSAL's methods are part of the MOP in Moose
+  2.0300 (doy)
+
 0.10 - 2010-11-20
  - Fixed to use new Moose::Util::MetaRole API.
  - Upgraded Moose dep to v0.94.
