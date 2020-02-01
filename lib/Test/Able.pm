@@ -49,7 +49,7 @@ L<Moose>.  It can do all the important things Test::Class can do and more.
 The prime advantages of using this module instead of Test::Class are
 flexibility and power.  Namely, Moose.
 
-This module was created for a few of reasons:
+This module was created for a few reasons:
 
 =over
 
